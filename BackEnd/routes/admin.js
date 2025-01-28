@@ -7,7 +7,8 @@ const Admin = require('../models/adminSchema');
 const app = express();
 const port = 3000;
 
-const url = 'mongodb://127.0.0.1:27017/';
+
+const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/';
 const dbName = "login-detail";
 
 app.use(express.json());
