@@ -23,7 +23,7 @@ async function connectDB() {
 }
 connectDB();
 
-router.get('/admins', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const alladmins = await admin.find().toArray();
         res.status(200).json(alladmins);
@@ -32,7 +32,7 @@ router.get('/admins', async (req, res) => {
     }
 });
 
-router.post('/admins', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const newadmin = req.body;
         const result = await admin.insertOne(newadmin);
@@ -42,7 +42,7 @@ router.post('/admins', async (req, res) => {
     }
 });
 
-router.put('/admins/:name', async (req, res) => {
+router.put('/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const updatedData = req.body;
@@ -56,7 +56,7 @@ router.put('/admins/:name', async (req, res) => {
     }
 });
 
-router.delete('admins/:user', async (req,res) => {
+router.delete('/:user', async (req,res) => {
     try {
         const { user } = req.params;
         const result = await admin.deelteOne({ user });

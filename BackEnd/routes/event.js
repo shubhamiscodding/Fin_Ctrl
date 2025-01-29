@@ -21,9 +21,11 @@ async function connectDB() {
         process.exit(1);
     }
 }
+
+// Call the database connection function
 connectDB();
 
-router.get('/events', async (req, res) => {
+router.get('/', async (req, res) => {  // Changed from '/events' to '/'
     try {
         const allevents = await event.find().toArray();
         res.status(200).json(allevents);
@@ -32,7 +34,7 @@ router.get('/events', async (req, res) => {
     }
 });
 
-router.post('/events', async (req, res) => {
+router.post('/', async (req, res) => {  // Changed from '/events' to '/'
     try {
         const newevent = req.body;
         const result = await event.insertOne(newevent);
@@ -42,7 +44,7 @@ router.post('/events', async (req, res) => {
     }
 });
 
-router.put('/events/:name', async (req, res) => {
+router.put('/:name', async (req, res) => {  // Changed from '/events/:name' to '/:name'
     try {
         const { name } = req.params;
         const updatedData = req.body;
@@ -57,6 +59,3 @@ router.put('/events/:name', async (req, res) => {
 });
 
 module.exports = router;
-
-
-

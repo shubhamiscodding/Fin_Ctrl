@@ -23,7 +23,7 @@ async function connectDB() {
 }
 connectDB();
 
-router.get('/users', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const allUsers = await user.find().toArray();
         res.status(200).json(allUsers);
@@ -32,7 +32,7 @@ router.get('/users', async (req, res) => {
     }
 });
 
-router.post('/users', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const newUser = req.body;
         const result = await user.insertOne(newUser);
@@ -42,7 +42,7 @@ router.post('/users', async (req, res) => {
     }
 });
 
-router.put('/users/:name', async (req, res) => {
+router.put('/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const updatedData = req.body;
