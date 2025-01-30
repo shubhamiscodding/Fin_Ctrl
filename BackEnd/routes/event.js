@@ -1,5 +1,6 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
+const Event = require('../models/eventSchema');
 
 const router = express.Router();
 
@@ -10,7 +11,10 @@ let db, event;
 
 async function connectDB() {
     try {
-        const client = new MongoClient(url);
+        const client = new MongoClient(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         await client.connect();
         console.log("Connected to MongoDB");
 
@@ -36,7 +40,8 @@ router.get('/', async (req, res) => {  // Changed from '/events' to '/'
 
 router.post('/', async (req, res) => {  // Changed from '/events' to '/'
     try {
-        const newevent = req.body;
+        const newEvent = new Event(req.body);
+        const savedEvent = await newEvent.save();
         const result = await event.insertOne(newevent);
         res.status(201).send(`Event added with ID: ${result.insertedId}`);
     } catch (err) {

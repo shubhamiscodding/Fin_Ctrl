@@ -10,7 +10,10 @@ let db, user;
 
 async function connectDB() {
     try {
-        const client = new MongoClient(url);
+        const client = new MongoClient(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         await client.connect();
         console.log("Connected to MongoDB");
 
@@ -34,7 +37,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const newUser = req.body;
+        const newUser = new User(req.body);
+        const savedUser = await newUser.save();
         const result = await user.insertOne(newUser);
         res.status(201).send(`User added with ID: ${result.insertedId}`);
     } catch (err) {

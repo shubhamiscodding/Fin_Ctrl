@@ -10,7 +10,10 @@ let db, admin;
 
 async function connectDB() {
     try {
-        const client = new MongoClient(url);
+        const client = new MongoClient(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         await client.connect();
         console.log("Connected to MongoDB");
 
