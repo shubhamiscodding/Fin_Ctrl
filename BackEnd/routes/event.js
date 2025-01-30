@@ -42,7 +42,6 @@ router.post('/', async (req, res) => {  // Changed from '/events' to '/'
     try {
         const newEvent = new Event(req.body);
         const savedEvent = await newEvent.save();
-        const result = await event.insertOne(newevent);
         res.status(201).send(`Event added with ID: ${result.insertedId}`);
     } catch (err) {
         res.status(500).send("Error adding event: " + err.message);
