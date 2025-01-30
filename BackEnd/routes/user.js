@@ -1,56 +1,55 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const mongoose = require('mongoose');
+const User = require('../models/userSchema'); // Import User schema
 
 const router = express.Router();
 
-const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/';
-const dbName = "login-detail";
+const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/login-detail';
 
-let db, user;
-
+// Function to connect MongoDB using Mongoose
 async function connectDB() {
     try {
-        const client = new MongoClient(url, {
+        await mongoose.connect(url, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
-        await client.connect();
         console.log("Connected to MongoDB");
-
-        db = client.db(dbName);
-        user = db.collection("user");
     } catch (err) {
         console.error("Error connecting to MongoDB:", err);
         process.exit(1);
     }
 }
+
 connectDB();
 
+// ✅ GET all users
 router.get('/', async (req, res) => {
     try {
-        const allUsers = await user.find().toArray();
+        const allUsers = await User.find(); // Mongoose handles find()
         res.status(200).json(allUsers);
     } catch (err) {
         res.status(500).send("Error fetching users: " + err.message);
     }
 });
 
+// ✅ POST request (Mongoose automatically applies default values)
 router.post('/', async (req, res) => {
     try {
-        const newUser = new User(req.body);
-        const savedUser = await newUser.save();
-        const result = await user.insertOne(newUser);
-        res.status(201).send(`User added with ID: ${result.insertedId}`);
+        const newUser = new User(req.body); // Create a new User instance
+        const savedUser = await newUser.save(); // Save it to MongoDB
+        res.status(201).send(`User added with ID: ${savedUser._id}`);
     } catch (err) {
         res.status(500).send("Error adding user: " + err.message);
     }
 });
 
+// ✅ PUT request (Updating user by name)
 router.put('/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const updatedData = req.body;
-        const result = await user.updateOne({ name }, { $set: updatedData });
+        const result = await User.updateOne({ name }, { $set: updatedData });
+
         if (result.matchedCount === 0) {
             return res.status(404).send("User not found");
         }
@@ -61,5 +60,3 @@ router.put('/:name', async (req, res) => {
 });
 
 module.exports = router;
-
-
