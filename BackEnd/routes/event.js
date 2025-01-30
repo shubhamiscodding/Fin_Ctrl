@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const mongoose = require('mongoose');
 const Event = require('../models/eventSchema');
 
 const router = express.Router();
@@ -11,22 +11,18 @@ let db, event;
 
 async function connectDB() {
     try {
-        const client = new MongoClient(url, {
+        await mongoose.connect(url, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
-        await client.connect();
         console.log("Connected to MongoDB");
-
-        db = client.db(dbName);
-        event = db.collection("event");
     } catch (err) {
         console.error("Error connecting to MongoDB:", err);
         process.exit(1);
     }
 }
 
-// Call the database connection function
+
 connectDB();
 
 router.get('/', async (req, res) => {  // Changed from '/events' to '/'
