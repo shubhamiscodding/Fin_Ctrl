@@ -1,75 +1,77 @@
-
 const express = require('express');
-const cors = require('cors');
-const { MongoClient } = require('mongodb');
-const Admin = require('../models/adminSchema');
+const mongoose = require('mongoose');
+const Admin = require('../models/adminSchema'); // Import Admin schema
 
-const app = express();
-const port = 3000;
+const router = express.Router();
 
+const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/login-detail';
 
-const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/';
-const dbName = "login-detail";
-
-app.use(express.json());
-app.use(cors());
-
-let db, admin;
-
-async function main() {
+// Function to connect MongoDB using Mongoose
+async function connectDB() {
     try {
-        const client = new MongoClient(url); // No need for useUnifiedTopology
-        client.connect();
-        console.log("Connected to MongoDB");
-
-        db = client.db(dbName);
-        admin = db.collection("admin");
-
-        app.listen(port, () => {
-            console.log(`Server running at http://localhost:${port}`);
+        await mongoose.connect(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
         });
+        console.log("Connected to MongoDB");
     } catch (err) {
         console.error("Error connecting to MongoDB:", err);
         process.exit(1);
     }
 }
 
-main();
+connectDB();
 
-app.get('/admins', async (req, res) => {
+// ✅ GET all admins
+router.get('/', async (req, res) => {
     try {
-        const alladmins = await admin.find().toArray();
-        res.status(200).json(alladmins);
+        const allAdmins = await Admin.find(); // Mongoose handles find()
+        res.status(200).json(allAdmins);
     } catch (err) {
         res.status(500).send("Error fetching admins: " + err.message);
     }
 });
 
-app.post('/admins', async (req, res) => {
+// ✅ POST request (Mongoose automatically applies default values)
+router.post('/', async (req, res) => {
     try {
-        const newadmin = req.body;
-        const result = await admin.insertOne(newadmin);
-        res.status(201).send(`admin added with ID: ${result.insertedId}`);
+        const newAdmin = new Admin(req.body); // Create a new Admin instance
+        const savedAdmin = await newAdmin.save(); // Save it to MongoDB
+        res.status(201).send(`Admin added with ID: ${savedAdmin._id}`);
     } catch (err) {
         res.status(500).send("Error adding admin: " + err.message);
     }
 });
 
-app.put('/admins/:name', async (req, res) => {
+// ✅ PUT request (Updating admin by name)
+router.put('/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const updatedData = req.body;
-        const result = await admin.updateOne({ name }, { $set: updatedData });
+        const result = await Admin.updateOne({ name }, { $set: updatedData });
+
         if (result.matchedCount === 0) {
-            return res.status(404).send("admin not found");
+            return res.status(404).send("Admin not found");
         }
-        res.status(200).send("admin updated successfully");
+        res.status(200).send("Admin updated successfully");
     } catch (err) {
         res.status(500).send("Error updating admin: " + err.message);
     }
 });
 
+// ✅ DELETE request (Deleting admin by username)
+router.delete('/:user', async (req, res) => {
+    try {
+        const { user } = req.params;
+        const result = await Admin.deleteOne({ user });
 
+        if (result.deletedCount === 0) {
+            return res.status(404).send("Admin not found");
+        }
+        res.status(200).send("Admin deleted successfully");
+    } catch (err) {
+        res.status(500).send("Error deleting admin: " + err.message);
+    }
+});
 
-
-
+module.exports = router;

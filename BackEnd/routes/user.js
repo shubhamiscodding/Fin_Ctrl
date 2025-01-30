@@ -1,63 +1,55 @@
 const express = require('express');
-const cors = require('cors');
-const { MongoClient } = require('mongodb');
-const User = require('../models/userSchema');
+const mongoose = require('mongoose');
+const User = require('../models/userSchema'); // Import User schema
 
-const app = express();
-const port = 3000;
+const router = express.Router();
 
-const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/';
-const dbName = "login-detail";
+const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/login-detail';
 
-app.use(express.json());
-app.use(cors());
-
-let db, user;
-
-async function main() {
+// Function to connect MongoDB using Mongoose
+async function connectDB() {
     try {
-        const client = new MongoClient(url); // No need for useUnifiedTopology
-        client.connect();
-        console.log("Connected to MongoDB");
-
-        db = client.db(dbName);
-        user = db.collection("user");
-
-        app.listen(port, () => {
-            console.log(`Server running at http://localhost:${port}`);
+        await mongoose.connect(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
         });
+        console.log("Connected to MongoDB");
     } catch (err) {
         console.error("Error connecting to MongoDB:", err);
         process.exit(1);
     }
 }
 
-main();
+connectDB();
 
-app.get('/users', async (req, res) => {
+// ✅ GET all users
+router.get('/', async (req, res) => {
     try {
-        const allUsers = await user.find().toArray();
+        const allUsers = await User.find(); // Mongoose handles find()
         res.status(200).json(allUsers);
     } catch (err) {
         res.status(500).send("Error fetching users: " + err.message);
     }
 });
 
-app.post('/users', async (req, res) => {
+// ✅ POST request (Mongoose automatically applies default values)
+router.post('/', async (req, res) => {
     try {
-        const newUser = req.body;
-        const result = await user.insertOne(newUser);
-        res.status(201).send(`User added with ID: ${result.insertedId}`);
+        const newUser = new User(req.body); // Create a new User instance
+        const savedUser = await newUser.save(); // Save it to MongoDB
+        res.status(201).send(`User added with ID: ${savedUser._id}`);
     } catch (err) {
         res.status(500).send("Error adding user: " + err.message);
     }
 });
 
-app.put('/users/:name', async (req, res) => {
+// ✅ PUT request (Updating user by name)
+router.put('/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const updatedData = req.body;
-        const result = await user.updateOne({ name }, { $set: updatedData });
+        const result = await User.updateOne({ name }, { $set: updatedData });
+
         if (result.matchedCount === 0) {
             return res.status(404).send("User not found");
         }
@@ -67,5 +59,4 @@ app.put('/users/:name', async (req, res) => {
     }
 });
 
-
-
+module.exports = router;

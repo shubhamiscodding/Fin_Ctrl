@@ -12,7 +12,7 @@ const ExpenseSchema = new Schema({
 // Main schema for the event
 const EventSchema = new Schema(
   {
-    eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    eventId: { type: mongoose.Schema.Types.ObjectId},
     eventName: { type: String, required: true },
     budget: { type: Number, required: true },
     expenses: { type: [ExpenseSchema], default: [] },
