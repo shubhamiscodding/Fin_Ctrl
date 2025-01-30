@@ -1,14 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Event = require('../models/eventSchema');
+const Event = require('../models/eventSchema'); 
 
 const router = express.Router();
 
-const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/';
-const dbName = "login-detail";
+const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/login-detail';
 
-let db, event;
-
+// Function to connect MongoDB using Mongoose
 async function connectDB() {
     try {
         await mongoose.connect(url, {
@@ -22,33 +20,36 @@ async function connectDB() {
     }
 }
 
-
 connectDB();
 
-router.get('/', async (req, res) => {  // Changed from '/events' to '/'
+// ✅ GET all events (Fixed)
+router.get('/', async (req, res) => {
     try {
-        const allevents = await event.find().toArray();
-        res.status(200).json(allevents);
+        const allEvents = await Event.find(); // Use Mongoose's find()
+        res.status(200).json(allEvents);
     } catch (err) {
         res.status(500).send("Error fetching events: " + err.message);
     }
 });
 
-router.post('/', async (req, res) => {  // Changed from '/events' to '/'
+// ✅ POST request (Now properly saves default values)
+router.post('/', async (req, res) => {
     try {
-        const newEvent = new Event(req.body);
+        const newEvent = new Event(req.body); // Mongoose handles defaults
         const savedEvent = await newEvent.save();
-        res.status(201).send(`Event added with ID: ${result.insertedId}`);
+        res.status(201).send(`Event added with ID: ${savedEvent._id}`);
     } catch (err) {
         res.status(500).send("Error adding event: " + err.message);
     }
 });
 
-router.put('/:name', async (req, res) => {  // Changed from '/events/:name' to '/:name'
+
+router.put('/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const updatedData = req.body;
-        const result = await event.updateOne({ name }, { $set: updatedData });
+        const result = await Event.updateOne({ name }, { $set: updatedData });
+
         if (result.matchedCount === 0) {
             return res.status(404).send("Event not found");
         }
