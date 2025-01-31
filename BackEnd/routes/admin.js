@@ -1,15 +1,17 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const Admin = require('../models/adminSchema'); // Import Admin schema
 
 const router = express.Router();
 
-const url = 'mongodb+srv://shubhammodicg:9099@cluster1.zi1vg.mongodb.net/login-detail';
+
+const MONGO_URI = process.env.MONGO_URI;
 
 // Function to connect MongoDB using Mongoose
 async function connectDB() {
     try {
-        await mongoose.connect(url, {
+        await mongoose.connect(MONGO_URI, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
