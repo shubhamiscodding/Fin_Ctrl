@@ -2,30 +2,19 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-// Sub-schema for entries in finance trackers
-const EntrySchema = new Schema({
-  date: { type: Date, required: true },
-  description: { type: String, required: true },
-  amount: { type: Number, required: true },
-  category: { type: String, required: true },
-});
-
-// Sub-schema for finance trackers
-const FinanceTrackerSchema = new Schema({
-  trackerId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  trackerName: { type: String, required: true },
-  entries: { type: [EntrySchema], default: [] },
-  totalBalance: { type: Number, default: 0 },
-});
-
-// Sub-schema for expenses in events
 const ExpenseSchema = new Schema({
   date: { type: Date, required: true },
   description: { type: String, required: true },
   amount: { type: Number, required: true },
 });
 
-// Sub-schema for events
+const FinancePlanSchema = new Schema({
+  planName: { type: String, required: true },
+  goalAmount: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+
 const EventSchema = new Schema({
   eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
   eventName: { type: String, required: true },
@@ -35,14 +24,12 @@ const EventSchema = new Schema({
   remainingBudget: { type: Number, default: 0 },
 });
 
-// Sub-schema for managed admins
 const ManagedusersSchema = new Schema({
-  adminId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  financeData: { type: [FinanceTrackerSchema], default: [] },
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Change this to `userId`
+  financeData: { type: [FinancePlanSchema], default: [] },
   events: { type: [EventSchema], default: [] },
 });
 
-// Main schema
 const AdminSchema = new Schema(
   {
     adminname: { type: String, required: true },
@@ -53,7 +40,7 @@ const AdminSchema = new Schema(
     updatedAt: { type: Date, default: Date.now },
     passforuser: { type: String, required: true },
   },
-  { timestamps: true } // Automatically adds `createdAt` and `updatedAt`
+  { timestamps: true }
 );
 
 const Admin = mongoose.model("Admin", AdminSchema);
