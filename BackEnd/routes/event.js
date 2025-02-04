@@ -2,9 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const Event = require('../models/eventSchema'); 
+const { ObjectId } = mongoose.Types;
 
 const router = express.Router();
-
 
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -24,20 +24,20 @@ async function connectDB() {
 
 connectDB();
 
-// ✅ GET all events (Fixed)
+// ✅ GET all events
 router.get('/', async (req, res) => {
     try {
-        const allEvents = await Event.find(); // Use Mongoose's find()
+        const allEvents = await Event.find();
         res.status(200).json(allEvents);
     } catch (err) {
         res.status(500).send("Error fetching events: " + err.message);
     }
 });
 
-// ✅ POST request (Now properly saves default values)
+// ✅ POST request
 router.post('/', async (req, res) => {
     try {
-        const newEvent = new Event(req.body); // Mongoose handles defaults
+        const newEvent = new Event(req.body);
         const savedEvent = await newEvent.save();
         res.status(201).send(`Event added with ID: ${savedEvent._id}`);
     } catch (err) {
@@ -45,12 +45,19 @@ router.post('/', async (req, res) => {
     }
 });
 
+// ✅ PUT request (update event by name)
 
-router.put('/:name', async (req, res) => {
+router.put('/:id', async (req, res) => {
     try {
-        const { name } = req.params;
+        const { id } = req.params;
         const updatedData = req.body;
-        const result = await Event.updateOne({ name }, { $set: updatedData });
+
+        // Ensure the ID is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send("Invalid ID format");
+        }
+
+        const result = await Event.updateOne({ _id: id }, { $set: updatedData });
 
         if (result.matchedCount === 0) {
             return res.status(404).send("Event not found");
@@ -58,6 +65,29 @@ router.put('/:name', async (req, res) => {
         res.status(200).send("Event updated successfully");
     } catch (err) {
         res.status(500).send("Error updating event: " + err.message);
+    }
+});
+
+
+// ✅ DELETE request (delete event by name)
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Validate ObjectId format
+        if (!ObjectId.isValid(id)) {
+            return res.status(400).send("Invalid event ID");
+        }
+
+        const result = await Event.deleteOne({ _id: new ObjectId(id) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).send("Event not found");
+        }
+
+        res.status(200).send("Event deleted successfully");
+    } catch (err) {
+        res.status(500).send("Error deleting event: " + err.message);
     }
 });
 

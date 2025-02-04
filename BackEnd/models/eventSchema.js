@@ -19,7 +19,7 @@ const EventSchema = new Schema(
     totalSpent: { type: Number, default: 0 },
     remainingBudget: { type: Number, default: 0 },
     discription: { type: String, default: "N/A" },
-    dateofevent:{ type: Date },
+    dateofevent:{ type: Date , default: Date.now },
     ispublic : {type: Boolean , default: false}
   },
   { timestamps: true } // Automatically adds `createdAt` and `updatedAt`
