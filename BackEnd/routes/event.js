@@ -34,6 +34,24 @@ router.get('/', async (req, res) => {
     }
 });
 
+
+router.get('/', async (req, res) => {
+    try {
+        const { isPublic } = req.query; // Get query parameter
+        
+        let query = {}; // Default: fetch all events
+        if (isPublic === "true") {
+            query.ispublic = true; // Filter only public events
+        }
+
+        const allEvents = await Event.find(query);
+        res.status(200).json(allEvents);
+    } catch (err) {
+        res.status(500).send("Error fetching events: " + err.message);
+    }
+});
+
+
 // ✅ POST request
 router.post('/', async (req, res) => {
     try {

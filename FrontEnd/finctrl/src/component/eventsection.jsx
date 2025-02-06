@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Trash } from "lucide-react"
-import "../css/eventSection.css"
+import "../App.css"
 
 const EventSection = () => {
   const [eventCards, setEventCards] = useState([]);
