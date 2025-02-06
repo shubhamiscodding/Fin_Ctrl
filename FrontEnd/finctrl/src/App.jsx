@@ -6,11 +6,11 @@ import Dashboard from "./component/dashboard";
 import Profiles from "./component/profiles"; 
 import Users from "./component/user"; 
 import Guide from "./component/guide"; 
-import SignIn from "./component/signin";
+import LogIn from "./component/login.jsx";  // Change this to LogIn
 
 const App = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Track authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Track authentication state
 
   // Handle login
   const handleLogin = (username, password) => {
@@ -33,12 +33,12 @@ const App = () => {
             {/* Redirect to dashboard or login based on authentication status */}
             <Route 
               path="/" 
-              element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} 
+              element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/logIn" />}
             />
             
             {/* Public route for SignIn */}
-            <Route path="/login" element={<SignIn onLogin={handleLogin} />} />
-            
+            <Route path="/logIn" element={<LogIn onLogin={handleLogin} />} /> {/* Change to LogIn */}
+
             {/* Protected routes - only accessible if authenticated */}
             {isAuthenticated && (
               <>
@@ -51,7 +51,7 @@ const App = () => {
             )}
 
             {/* Redirect any other route to login if not authenticated */}
-            <Route path="*" element={<Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/logIn" />} /> {/* Change to /logIn */}
           </Routes>
         </div>
       </div>
