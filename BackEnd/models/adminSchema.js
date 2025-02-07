@@ -2,47 +2,59 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
+// Expense Schema
 const ExpenseSchema = new Schema({
   date: { type: Date, required: true },
   description: { type: String, required: true },
   amount: { type: Number, required: true },
 });
 
+// Finance Plan Schema
 const FinancePlanSchema = new Schema({
   planName: { type: String, required: true },
   goalAmount: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 
-
+// Event Schema
 const EventSchema = new Schema({
-  eventId: { type: mongoose.Schema.Types.ObjectId, required: true },
   eventName: { type: String, required: true },
   budget: { type: Number, required: true },
   expenses: { type: [ExpenseSchema], default: [] },
   totalSpent: { type: Number, default: 0 },
-  remainingBudget: { type: Number, default: 0 },
+  remainingBudget: { type: Number, default: function() { return this.budget; } }, 
 });
 
-const ManagedusersSchema = new Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true }, // Change this to `userId`
-  financeData: { type: [FinancePlanSchema], default: [] },
-  events: { type: [EventSchema], default: [] },
+// Auto-update totalSpent and remainingBudget
+EventSchema.pre("save", function (next) {
+  this.totalSpent = this.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  this.remainingBudget = this.budget - this.totalSpent;
+  next();
 });
 
+// Managed Users Schema (Reference Instead of Embedded)
+const ManagedUserSchema = new Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  financeData: [{ type: mongoose.Schema.Types.ObjectId, ref: "FinancePlan" }], // Reference instead of embedding
+  events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }], 
+});
+
+// Admin Schema
 const AdminSchema = new Schema(
   {
-    adminname: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    adminName: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
-    managedusers: { type: [ManagedusersSchema], default: [] },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
-    passforuser: { type: String, required: true },
+    managedUsers: { type: [ManagedUserSchema], default: [] },
+    passForUser: { type: String, required: true }, // Consider encrypting this
   },
   { timestamps: true }
 );
 
-const Admin = mongoose.model("Admin", AdminSchema);
+// Indexes for fast queries
+AdminSchema.index({ email: 1 });
+ManagedUserSchema.index({ userId: 1 });
 
+// Admin Model
+const Admin = mongoose.model("Admin", AdminSchema);
 module.exports = Admin;
