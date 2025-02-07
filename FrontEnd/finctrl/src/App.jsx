@@ -10,7 +10,7 @@ import LogIn from "./component/login.jsx";  // Change this to LogIn
 
 const App = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Track authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Track authentication state
 
   // Handle login
   const handleLogin = (username, password) => {

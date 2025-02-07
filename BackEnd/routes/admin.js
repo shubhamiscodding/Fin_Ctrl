@@ -76,4 +76,33 @@ router.delete('/:user', async (req, res) => {
     }
 });
 
+
+router.get("/admin/:adminId/managed-users", async (req, res) => {
+    try {
+        const admin = await Admin.findById(req.params.adminId)
+            .populate({
+                path: "managedUsers.userId",
+                select: "name email",
+            })
+            .populate({
+                path: "managedUsers.financeData",
+                select: "planName goalAmount createdAt",
+            })
+            .populate({
+                path: "managedUsers.events",
+                select: "eventName budget totalSpent remainingBudget",
+            });
+
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        res.json(admin.managedUsers);
+    } catch (error) {
+        console.error("Error fetching managed users:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+
 module.exports = router;
