@@ -14,7 +14,7 @@ const EventCard = ({ eventName, dateofevent, description, status }) => {
       <div className="text-sm text-gray-500">{description}</div>
       
       <div className="flex justify-between items-center mt-30">
-        <div>
+        <div className='-mt-20'>
           <div className={`text-sm ${status ? 'text-green-500' : 'text-red-500'}`}>
             status : {status ? 'Active' : 'Inactive'}
           </div>
@@ -45,7 +45,7 @@ const Profile = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-evenly flex-wrap gap-4">
+      <div className=" justify-evenly flex flex-wrap gap-4">
         {events.length > 0 ? (
           events.map((event, index) => <EventCard key={index} {...event} />)
         ) : (

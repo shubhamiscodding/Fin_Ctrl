@@ -12,7 +12,7 @@ import Callback from "./component/Callback.jsx";  // Import Callback
 
 const App = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Track authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Track authentication state
 
   // Define your Auth0 credentials here
   const domain = "dev-vhremigf6pt2jazt.us.auth0.com"; // Replace with your Auth0 domain
