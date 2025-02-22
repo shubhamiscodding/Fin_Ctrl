@@ -243,7 +243,9 @@ const EventSection = () => {
         date: event.dateofevent ? new Date(event.dateofevent).toISOString().split("T")[0] : "No Date",
         ispublic: event.ispublic,
       }));
+      console.log("Date of new event:", formattedEvents);
       setEventCards(formattedEvents);
+      
     } catch (error) {
       console.error("Error fetching events:", error);
     }
