@@ -21,7 +21,7 @@ const EventSchema = new Schema(
     description: { type: String, default: "N/A" },
     dateOfEvent: { type: Date, default: Date.now, require:true },
     isPublic: { type: Boolean, default: false },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: { type: Boolean, default: true },
   },
   { timestamps: true }
