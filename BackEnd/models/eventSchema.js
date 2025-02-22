@@ -12,7 +12,7 @@ const ExpenseSchema = new Schema({
 // Event Schema
 const EventSchema = new Schema(
   {
-    eventId: { type: mongoose.Schema.Types.ObjectId, default: mongoose.Types.ObjectId }, // auto-generate if not provided
+    eventId: { type: mongoose.Schema.Types.ObjectId, default: new mongoose.Types.ObjectId }, // auto-generate if not provided
     eventName: { type: String, required: true },
     budget: { type: Number, default: 0 }, // Set default to 0
     expenses: { type: [ExpenseSchema], default: [] },
