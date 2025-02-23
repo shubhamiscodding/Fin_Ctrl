@@ -240,7 +240,7 @@ const EventSection = () => {
       const formattedEvents = events.map((event) => ({
         id: event._id,
         title: event.eventName,
-        date: event.dateofevent ? new Date(event.dateofevent).toISOString().split("T")[0] : "No Date",
+        dateofevent: event.dateofevent,
         ispublic: event.ispublic,
       }));
       console.log("Date of new event:", formattedEvents);
@@ -270,6 +270,7 @@ const EventSection = () => {
       await fetchEvents();
       setShowModal(false);
       setNewEvent({ eventName: "", dateofevent: "", ispublic: false });
+      console.log(newEvent)
     } catch (error) {
       console.error("Error adding event:", error);
     }
@@ -379,7 +380,7 @@ const EventSection = () => {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Calendar size={16} />
-                  <span>{card.date}</span>
+                  <span>{card.dateofevent}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {card.ispublic ? (

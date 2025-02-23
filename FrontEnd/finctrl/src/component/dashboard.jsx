@@ -99,7 +99,7 @@ export default function Dashboard() {
       {/* Main Content Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart Section */}
-        <div className="bg-green-100 text-black p-6 rounded-2xl shadow-lg">
+        <div className="bg-blue-100 text-black p-6 rounded-2xl shadow-lg">
           <div className="flex justify-between items-center">
             <div>
               <p className="font-bold text-lg">Available</p>
