@@ -240,7 +240,7 @@ const EventSection = () => {
       const formattedEvents = events.map((event) => ({
         id: event._id,
         title: event.eventName,
-        dateofevent: event.dateofevent,
+        dateofevent: event.dateofevent ? new Date(event.dateofevent).toISOString().split("T")[0] : "No Date",
         ispublic: event.ispublic,
       }));
       console.log("Date of new event:", formattedEvents);

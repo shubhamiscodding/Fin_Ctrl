@@ -18,7 +18,7 @@ const EventSchema = new Schema(
     totalSpent: { type: Number, default: 0 },
     remainingBudget: { type: Number, default: 0 },
     description: { type: String, default: "N/A" },
-    dateOfevent: { type: Date, default: Date.now, require:true },
+    dateofevent: { type: Date, default: Date.now, require:true },
     ispublic: { type: Boolean, default: false },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
