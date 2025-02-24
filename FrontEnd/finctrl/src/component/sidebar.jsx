@@ -23,17 +23,11 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   return (
     <div className={`fixed h-screen top-0 left-0 bg-white shadow-lg transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"}`}>
       {/* Sidebar Header */}
+      <div>
+        <img src="https://res.cloudinary.com/dqhn4dq02/image/upload/v1738918889/c8sw0fobwfaa0yzwcu2a.png" alt="LOGO" />
+      </div>
       <div className="flex items-center p-4 border-b">
         <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} w-full`}>
-          {!isCollapsed && isAuthenticated && (
-            <div className="flex items-center gap-2">
-              <img src={user?.picture} alt="Profile" className="rounded-full w-10 h-10" />
-              <div>
-                <h2 className="text-sm font-semibold">{user?.name}</h2>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </div>
-            </div>
-          )}
           <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-1 rounded-lg hover:bg-gray-100">
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
@@ -67,6 +61,15 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             </button>
           </li>
         </ul>
+        {!isCollapsed && isAuthenticated && (
+            <div className="flex items-center gap-2 mt-55">
+              <img src={user?.picture} alt="Profile" className="rounded-full w-10 h-10" />
+              <div>
+                <h2 className="text-sm font-semibold">{user?.name}</h2>
+                <p className="text-xs text-gray-500">{user?.email}</p>
+              </div>
+            </div>
+          )}
       </nav>
     </div>
   );
