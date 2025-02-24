@@ -117,24 +117,27 @@
 
 
 
-
-
 import { useAuth0 } from "@auth0/auth0-react";
 
-const LogIn = () => {
-  const { loginWithRedirect, error } = useAuth0();
-
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
+const Login = () => {
+  const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
 
   return (
-    <div className="login-container">
-      <h2>Login to Your Account</h2>
-      <button onClick={() => loginWithRedirect()}>Log in with Auth0</button>
+    <div>
+      {!isAuthenticated ? (
+        <button onClick={() => loginWithRedirect()}>Log in</button>
+      ) : (
+        <>
+          <p>Welcome, {user.name}</p>
+          <button onClick={() => logout({ returnTo: window.location.origin })}>
+            Log out
+          </button>
+        </>
+      )}
     </div>
   );
 };
 
-export default LogIn;
+export default Login;
+
 

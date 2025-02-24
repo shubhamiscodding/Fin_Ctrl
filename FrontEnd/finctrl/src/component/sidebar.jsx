@@ -4,7 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react"; // Import Auth0 hooks
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
-  const { logout, user, isAuthenticated } = useAuth0(); // Destructure user and isAuthenticated from Auth0
+  const { logout, user, isAuthenticated } = useAuth0(); 
   const menuItems = [
     { title: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
     { title: "Event", icon: <CalendarDays size={20} />, path: "/event" },

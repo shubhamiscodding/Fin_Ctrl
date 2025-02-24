@@ -1,9 +1,24 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const jwt = require("express-jwt");
+const jwksRsa = require("jwks-rsa");
 const Admin = require('../models/adminSchema'); // Import Admin schema
 
 const router = express.Router();
+
+
+const checkJwt = jwt({
+    secret: jwksRsa.expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksUri: "https://dev-v5nfmrpr6ppncfak.us.auth0.com/.well-known/jwks.json",
+    }),
+    audience: "https://finctrl-api.com",
+    issuer: "https://dev-v5nfmrpr6ppncfak.us.auth0.com/",
+    algorithms: ["RS256"],
+  });
+  
 
 
 const MONGO_URI = process.env.MONGO_URI;
@@ -25,7 +40,7 @@ async function connectDB() {
 connectDB();
 
 // ✅ GET all admins
-router.get('/', async (req, res) => {
+router.get('/', checkJwt, async (req, res) => {
     try {
         const allAdmins = await Admin.find(); // Mongoose handles find()
         res.status(200).json(allAdmins);

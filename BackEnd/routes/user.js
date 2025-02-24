@@ -6,6 +6,20 @@ const Admin = require('../models/adminSchema');
 const router = express.Router();
 
 
+const checkJwt = jwt({
+    secret: jwksRsa.expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksUri: "https://YOUR_AUTH0_DOMAIN/.well-known/jwks.json",
+    }),
+    audience: "YOUR_AUTH0_API_IDENTIFIER",
+    issuer: "https://YOUR_AUTH0_DOMAIN/",
+    algorithms: ["RS256"],
+  });
+
+
+
+
 const MONGO_URI = process.env.MONGO_URI;
 
 // Function to connect MongoDB using Mongoose
@@ -25,7 +39,7 @@ async function connectDB() {
 connectDB();
 
 // ✅ GET all users
-router.get('/', async (req, res) => {
+router.get('/', checkJwt, async (req, res) => {
     try {
         const allUsers = await User.find(); // Mongoose handles find()
         res.status(200).json(allUsers);

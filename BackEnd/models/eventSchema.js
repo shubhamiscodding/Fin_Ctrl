@@ -12,17 +12,15 @@ const ExpenseSchema = new Schema({
 // Event Schema
 const EventSchema = new Schema(
   {
-    eventId: { type: mongoose.Schema.Types.ObjectId, default: mongoose.Types.ObjectId }, // auto-generate if not provided
     eventName: { type: String, required: true },
     budget: { type: Number, default: 0 }, // Set default to 0
     expenses: { type: [ExpenseSchema], default: [] },
     totalSpent: { type: Number, default: 0 },
     remainingBudget: { type: Number, default: 0 },
     description: { type: String, default: "N/A" },
-    dateOfEvent: { type: Date, default: Date.now },
-    isPublic: { type: Boolean, default: false },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    status: { type: Boolean, default: true },
+    dateofevent: { type: Date, default: Date.now, require:true },
+    ispublic: { type: Boolean, default: false },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

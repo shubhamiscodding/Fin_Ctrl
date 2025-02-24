@@ -3,7 +3,7 @@ import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import { Button } from "../components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
 
-export default function Dashboard() {
+export default function Eventdetail() {
   const totalAmount = 18000;
   const usedAmount = 17000;
   const Balance = totalAmount - usedAmount;
