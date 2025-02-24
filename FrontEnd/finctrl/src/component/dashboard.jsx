@@ -62,8 +62,8 @@ export default function Dashboard() {
   ];
 
   const data = [
-    { name: "Used", value: percentage, fill: "#111" },
-    { name: "Remaining", value: 100, fill: "#fff" },
+    { name: "Used", value: percentage, fill: "#000" },
+    { name: "Remaining", value: 100, fill: "#60a5fa" },
   ];
 
   return (
@@ -116,8 +116,8 @@ export default function Dashboard() {
               <RadialBarChart
                 cx="50%"
                 cy="50%"
-                innerRadius="80%"
-                outerRadius="100%"
+                innerRadius="85%"
+                outerRadius="130%"
                 barSize={12}
                 data={data}
               >

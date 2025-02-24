@@ -1,9 +1,24 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
+const jwt = require("express-jwt");
+const jwksRsa = require("jwks-rsa");
 const Admin = require('../models/adminSchema'); // Import Admin schema
 
 const router = express.Router();
+
+
+const checkJwt = jwt({
+    secret: jwksRsa.expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksUri: "https://YOUR_AUTH0_DOMAIN/.well-known/jwks.json",
+    }),
+    audience: "YOUR_AUTH0_API_IDENTIFIER",
+    issuer: "https://YOUR_AUTH0_DOMAIN/",
+    algorithms: ["RS256"],
+  });
+  
 
 
 const MONGO_URI = process.env.MONGO_URI;
