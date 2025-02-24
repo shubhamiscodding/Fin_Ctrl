@@ -39,7 +39,7 @@ async function connectDB() {
 connectDB();
 
 // ✅ GET all users
-router.get('/', async (req, res) => {
+router.get('/', checkJwt, async (req, res) => {
     try {
         const allUsers = await User.find(); // Mongoose handles find()
         res.status(200).json(allUsers);

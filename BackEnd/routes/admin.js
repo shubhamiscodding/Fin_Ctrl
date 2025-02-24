@@ -12,10 +12,10 @@ const checkJwt = jwt({
     secret: jwksRsa.expressJwtSecret({
       cache: true,
       rateLimit: true,
-      jwksUri: "https://YOUR_AUTH0_DOMAIN/.well-known/jwks.json",
+      jwksUri: "https://dev-v5nfmrpr6ppncfak.us.auth0.com/.well-known/jwks.json",
     }),
-    audience: "YOUR_AUTH0_API_IDENTIFIER",
-    issuer: "https://YOUR_AUTH0_DOMAIN/",
+    audience: "https://finctrl-api.com",
+    issuer: "https://dev-v5nfmrpr6ppncfak.us.auth0.com/",
     algorithms: ["RS256"],
   });
   
@@ -40,7 +40,7 @@ async function connectDB() {
 connectDB();
 
 // ✅ GET all admins
-router.get('/', async (req, res) => {
+router.get('/', checkJwt, async (req, res) => {
     try {
         const allAdmins = await Admin.find(); // Mongoose handles find()
         res.status(200).json(allAdmins);

@@ -13,7 +13,7 @@
 //   const [showEditModal, setShowEditModal] = useState(false);
 //   const [editingEvent, setEditingEvent] = useState(null);
 
- 
+
 
 //   useEffect(() => {
 //     fetchEvents();
@@ -213,6 +213,7 @@
 
 import { useState, useEffect } from "react";
 import { Trash, Calendar, Globe, Lock, Plus, Edit2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import "../App.css";
 
 const EventSection = () => {
@@ -245,7 +246,7 @@ const EventSection = () => {
       }));
       console.log("Date of new event:", formattedEvents);
       setEventCards(formattedEvents);
-      
+
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -353,47 +354,47 @@ const EventSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {eventCards.map((card) => (
-            <div
-              key={card.id}
-              className={`event-card bg-white p-6 rounded-xl shadow-md border-l-4 ${
-                card.ispublic ? "border-l-emerald-500" : "border-l-indigo-500"
-              }`}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="font-semibold text-lg text-gray-900">{card.title}</h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditEvent(card)}
-                    className="text-gray-400 hover:text-indigo-600 transition-colors"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteEvent(card.id)}
-                    className="text-gray-400 hover:text-red-600 transition-colors"
-                  >
-                    <Trash size={18} />
-                  </button>
+            <Link to={`/event/${card.id}`} key={card.id} className="block">
+              <div
+                className={`event-card bg-white p-6 rounded-xl shadow-md border-l-4 ${card.ispublic ? "border-l-emerald-500" : "border-l-indigo-500"
+                  } transition-transform transform hover:scale-105`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="font-semibold text-lg text-gray-900">{card.title}</h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => { e.preventDefault(); handleEditEvent(card); }}
+                      className="text-gray-400 hover:text-indigo-600 transition-colors"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={(e) => { e.preventDefault(); handleDeleteEvent(card.id); }}
+                      className="text-gray-400 hover:text-red-600 transition-colors"
+                    >
+                      <Trash size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Calendar size={16} />
+                    <span>{card.dateofevent}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {card.ispublic ? (
+                      <Globe size={16} className="text-emerald-500" />
+                    ) : (
+                      <Lock size={16} className="text-indigo-500" />
+                    )}
+                    <span className={card.ispublic ? "text-emerald-500" : "text-indigo-500"}>
+                      {card.ispublic ? "Public Event" : "Private Event"}
+                    </span>
+                  </div>
                 </div>
               </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar size={16} />
-                  <span>{card.dateofevent}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {card.ispublic ? (
-                    <Globe size={16} className="text-emerald-500" />
-                  ) : (
-                    <Lock size={16} className="text-indigo-500" />
-                  )}
-                  <span className={card.ispublic ? "text-emerald-500" : "text-indigo-500"}>
-                    {card.ispublic ? "Public Event" : "Private Event"}
-                  </span>
-                </div>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -426,7 +427,7 @@ const EventSection = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.dateofevent}
                 onChange={(e) =>
-                  setNewEvent((prev) => ({ ...prev, dateofevent: e.target.value}))
+                  setNewEvent((prev) => ({ ...prev, dateofevent: e.target.value }))
                 }
               />
             </div>
