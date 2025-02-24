@@ -4,7 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react"; // Import Auth0 hooks
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
-  const { logout, user, isAuthenticated } = useAuth0(); 
+  const { logout, user, isAuthenticated } = useAuth0();
   const menuItems = [
     { title: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
     { title: "Event", icon: <CalendarDays size={20} />, path: "/event" },
@@ -21,14 +21,18 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   };
 
   return (
-    <div className={`fixed h-screen top-0 left-0 bg-white shadow-lg transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"}`}>
+    <div className={`fixed h-screen top-0 left-0 bg-white shadow-lg transition-all duration-300 ${isCollapsed ? "w-20" : "w-62"}`}>
       {/* Sidebar Header */}
-      <div>
-        <img src="https://res.cloudinary.com/dqhn4dq02/image/upload/v1738918889/c8sw0fobwfaa0yzwcu2a.png" alt="LOGO" />
+      <div className={`${isCollapsed ? "" : "ml-2 mt-2"}`}>
+        <img src="https://res.cloudinary.com/dqhn4dq02/image/upload/v1738918889/c8sw0fobwfaa0yzwcu2a.png" alt="LOGO" className="max-h-30" />
       </div>
       <div className="flex items-center p-4 border-b">
-        <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} w-full`}>
-          <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-1 rounded-lg hover:bg-gray-100">
+        <div className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}>
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`p-1 rounded-lg hover:bg-gray-100 transition-all duration-200 ${isCollapsed ? "" : "ml-42"
+              }`}
+          >
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
         </div>
@@ -41,9 +45,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`flex items-center p-2 rounded-lg text-gray-700 transition ${
-                  location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
-                }`}
+                className={`flex items-center p-2 rounded-lg text-gray-700 transition ${location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
+                  }`}
               >
                 <span className="flex items-center justify-center">{item.icon}</span>
                 {!isCollapsed && <span className="ml-3">{item.title}</span>}
@@ -62,14 +65,14 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
           </li>
         </ul>
         {!isCollapsed && isAuthenticated && (
-            <div className="flex items-center gap-2 mt-55">
-              <img src={user?.picture} alt="Profile" className="rounded-full w-10 h-10" />
-              <div>
-                <h2 className="text-sm font-semibold">{user?.name}</h2>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </div>
+          <div className="flex items-center gap-2 mt-35">
+            <img src={user?.picture} alt="Profile" className="rounded-full w-10 h-10" />
+            <div>
+              <h2 className="text-sm font-semibold">{user?.name}</h2>
+              <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
-          )}
+          </div>
+        )}
       </nav>
     </div>
   );
