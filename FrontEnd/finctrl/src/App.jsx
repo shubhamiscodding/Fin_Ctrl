@@ -11,6 +11,7 @@ import Guide from './component/guide';
 import Login from './component/login';
 import Callback from './component/Callback';
 import Eventdetail from './component/eventdetail';
+import ProfileDashboard from './component/profiledashboard';
 
 const AppContent = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -56,6 +57,7 @@ const AppContent = () => {
               <Route path="/profiles" element={<Profiles />} />
               <Route path="/users" element={<Users />} />
               <Route path="/guide" element={<Guide />} />
+              <Route path="/profile-dashboard" element={<ProfileDashboard />} />
             </>
           ) : (
             <Route path="*" element={<Navigate to="/login" />} />
