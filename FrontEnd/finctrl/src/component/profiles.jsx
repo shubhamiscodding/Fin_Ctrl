@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Eye } from 'lucide-react';
+import { LoadingIcon } from "../components/ui/loading-icon"
+
 
 const EventCard = ({ eventName, dateofevent, description, status }) => {
   return (
@@ -8,11 +10,11 @@ const EventCard = ({ eventName, dateofevent, description, status }) => {
         <h3 className="text-lg font-semibold mt-5">{eventName}</h3>
         <Eye className="text-gray-500 mt-4" />
       </div>
-      
+
       <div className="text-xl font-bold mb-10 -mt-3">{new Date(dateofevent).toDateString()}</div>
-      
+
       <div className="text-sm text-gray-500">{description}</div>
-      
+
       <div className="flex justify-between items-center mt-30">
         <div className='-mt-20'>
           <div className={`text-sm ${status ? 'text-green-500' : 'text-red-500'}`}>
@@ -49,7 +51,9 @@ const Profile = () => {
         {events.length > 0 ? (
           events.map((event, index) => <EventCard key={index} {...event} />)
         ) : (
-          <p className="text-center">Loading events...</p>
+          <div className="col-span-full flex justify-center items-center h-64">
+            <LoadingIcon size={58} color="border-l-indigo-500" />
+          </div>
         )}
       </div>
 

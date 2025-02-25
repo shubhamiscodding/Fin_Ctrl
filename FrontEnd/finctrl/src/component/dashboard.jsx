@@ -75,7 +75,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$1,234.56</div>
+            <div className="text-2xl font-bold">INR:1,234.56</div>
           </CardContent>
         </Card>
         <Card>
@@ -83,7 +83,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$567.89</div>
+            <div className="text-2xl font-bold">INR:567.89</div>
           </CardContent>
         </Card>
         <Card>
@@ -91,7 +91,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">Total Income</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$2,345.67</div>
+            <div className="text-2xl font-bold">INR:2,345.67</div>
           </CardContent>
         </Card>
       </div>
@@ -104,7 +104,7 @@ export default function Dashboard() {
             <div>
               <p className="font-bold text-lg">Available</p>
               <p className="text-sm">this Month</p>
-              <p className="text-2xl font-bold mt-2">${totalAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold mt-2">INR:{totalAmount.toLocaleString()}</p>
             </div>
             <button className="text-sm bg-white text-gray-800 px-3 py-1 rounded-full">
               Change
@@ -126,7 +126,7 @@ export default function Dashboard() {
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute flex flex-col items-center justify-center">
-              <p className="text-2xl font-bold">${usedAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold">INR:{usedAmount.toLocaleString()}</p>
               <p className="text-sm">17 December</p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function Dashboard() {
                             transaction.amount > 0 ? "text-green-600" : "text-red-600"
                           }
                         >
-                          ${Math.abs(transaction.amount).toFixed(2)}
+                          INR:{Math.abs(transaction.amount).toFixed(2)}
                         </span>
                       </TableCell>
                     </TableRow>

@@ -1,10 +1,22 @@
-import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut } from "lucide-react"; // Add LogOut icon
+import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut, User } from "lucide-react"; // Add LogOut icon
 import { Link, useLocation } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react"; // Import Auth0 hooks
+import { useState, useEffect } from "react";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const { logout, user, isAuthenticated } = useAuth0();
+  const [profilePic, setProfilePic] = useState(localStorage.getItem("userPic"));
+
+  useEffect(() => {
+    if (user?.picture) {
+      localStorage.setItem("userPic", user.picture);
+      setProfilePic(user.picture);
+    }
+  }, [user]);
+
+
+
   const menuItems = [
     { title: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
     { title: "Event", icon: <CalendarDays size={20} />, path: "/event" },
@@ -23,15 +35,19 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   return (
     <div className={`fixed h-screen top-0 left-0 bg-white shadow-lg transition-all duration-300 ${isCollapsed ? "w-20" : "w-62"}`}>
       {/* Sidebar Header */}
-      <div className={`${isCollapsed ? "" : "ml-2 mt-2"}`}>
-        <img src="https://res.cloudinary.com/dqhn4dq02/image/upload/v1738918889/c8sw0fobwfaa0yzwcu2a.png" alt="LOGO" className="max-h-30" />
-      </div>
+
       <div className="flex items-center p-4 border-b">
         <div className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}>
+          {!isCollapsed ? (
+            <img
+              src="https://res.cloudinary.com/dqhn4dq02/image/upload/v1738918889/c8sw0fobwfaa0yzwcu2a.png"
+              alt="LOGO"
+              className="max-h-15"
+            />
+          ) : null}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`p-1 rounded-lg hover:bg-gray-100 transition-all duration-200 ${isCollapsed ? "" : "ml-42"
-              }`}
+            className={`p-1 rounded-lg hover:bg-gray-100 transition-all duration-200 `}
           >
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
@@ -64,13 +80,20 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             </button>
           </li>
         </ul>
-        {!isCollapsed && isAuthenticated && (
+        {isAuthenticated && (
           <div className="flex items-center gap-2 mt-35">
-            <img src={user?.picture} alt="Profile" className="rounded-full w-10 h-10" />
-            <div>
-              <h2 className="text-sm font-semibold">{user?.name}</h2>
-              <p className="text-xs text-gray-500">{user?.email}</p>
-            </div>
+            {isCollapsed &&
+              <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
+            }
+            {!isCollapsed &&
+              <div className="flex gap-1.5">
+                <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
+                <div>
+                  <h2 className="text-sm font-semibold">{user?.nickname}</h2>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
+              </div>
+            }
           </div>
         )}
       </nav>

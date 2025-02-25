@@ -210,134 +210,134 @@
 // export default EventSection;
 
 
-
-import { useState, useEffect } from "react";
-import { Trash, Calendar, Globe, Lock, Plus, Edit2 } from "lucide-react";
-import { Link } from "react-router-dom";
-import "../App.css";
+import { useState, useEffect } from "react"
+import { Trash, Calendar, Globe, Lock, Plus, Edit2 } from "lucide-react"
+import { Link } from "react-router-dom"
+import { LoadingIcon } from "../components/ui/loading-icon"
+import "../App.css"
 
 const EventSection = () => {
-  const [eventCards, setEventCards] = useState([]);
+  const [eventCards, setEventCards] = useState([])
   const [newEvent, setNewEvent] = useState({
     eventName: "",
     dateofevent: "",
     ispublic: false,
-  });
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
+  })
+  const [showModal, setShowModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingEvent, setEditingEvent] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    fetchEvents()
+  }, [])
 
   const fetchEvents = async () => {
+    setIsLoading(true)
     try {
-      const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event");
+      const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event")
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        throw new Error(`API error: ${response.status}`)
       }
-      const events = await response.json();
+      const events = await response.json()
       const formattedEvents = events.map((event) => ({
         id: event._id,
         title: event.eventName,
         dateofevent: event.dateofevent ? new Date(event.dateofevent).toISOString().split("T")[0] : "No Date",
         ispublic: event.ispublic,
-      }));
-      console.log("Date of new event:", formattedEvents);
-      setEventCards(formattedEvents);
-
+      }))
+      console.log("Date of new event:", formattedEvents)
+      setEventCards(formattedEvents)
     } catch (error) {
-      console.error("Error fetching events:", error);
+      console.error("Error fetching events:", error)
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleAddEvent = async () => {
     try {
-      console.log("Date of new event:", newEvent.dateofevent);
-      const apiUrl = "https://fin-ctrl-1.onrender.com/FinCtrl/event";
+      console.log("Date of new event:", newEvent.dateofevent)
+      const apiUrl = "https://fin-ctrl-1.onrender.com/FinCtrl/event"
       const formattedEvent = {
         ...newEvent, // Ensure correct format
-      };
+      }
 
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formattedEvent),
-      });
+      })
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      if (!response.ok) throw new Error(`API error: ${response.status}`)
 
-      await fetchEvents();
-      setShowModal(false);
-      setNewEvent({ eventName: "", dateofevent: "", ispublic: false });
+      await fetchEvents()
+      setShowModal(false)
+      setNewEvent({ eventName: "", dateofevent: "", ispublic: false })
       console.log(newEvent)
     } catch (error) {
-      console.error("Error adding event:", error);
+      console.error("Error adding event:", error)
     }
-  };
+  }
 
   const handleDeleteEvent = async (id) => {
     try {
-      const apiUrl = `https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`;
-      const response = await fetch(apiUrl, { method: "DELETE" });
+      const apiUrl = `https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`
+      const response = await fetch(apiUrl, { method: "DELETE" })
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      if (!response.ok) throw new Error(`API error: ${response.status}`)
 
-      setEventCards((prev) => prev.filter((event) => event.id !== id));
+      setEventCards((prev) => prev.filter((event) => event.id !== id))
     } catch (error) {
-      console.error("Error deleting event:", error);
+      console.error("Error deleting event:", error)
     }
-  };
+  }
 
   const handleEditEvent = (event) => {
     setEditingEvent({
       ...event,
-      date: event.date ? event.date : "",
-    });
-    setShowEditModal(true);
-  };
+      date: event.dateofevent,
+    })
+    setShowEditModal(true)
+  }
 
   const handleUpdateEvent = async () => {
     try {
-      if (!editingEvent) return;
+      if (!editingEvent) return
 
-      const apiUrl = `https://fin-ctrl-1.onrender.com/FinCtrl/event/${editingEvent.id}`;
+      const apiUrl = `https://fin-ctrl-1.onrender.com/FinCtrl/event/${editingEvent.id}`
       const formattedEvent = {
         eventName: editingEvent.title,
-        dateofevent: new Date(editingEvent.date).toISOString(),
+        dateofevent: editingEvent.date,
         ispublic: editingEvent.ispublic,
-      };
+      }
 
       const response = await fetch(apiUrl, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formattedEvent),
-      });
+      })
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      if (!response.ok) throw new Error(`API error: ${response.status}`)
 
-      await fetchEvents();
-      setShowEditModal(false);
-      setEditingEvent(null);
+      await fetchEvents()
+      setShowEditModal(false)
+      setEditingEvent(null)
     } catch (error) {
-      console.error("Error updating event:", error);
+      console.error("Error updating event:", error)
     }
-  };
+  }
 
   const Modal = ({ children, onClose }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-overlay">
       <div className="bg-white p-8 rounded-xl shadow-2xl w-[480px] relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-        >
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
           ✕
         </button>
         {children}
       </div>
     </div>
-  );
+  )
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -351,51 +351,65 @@ const EventSection = () => {
             <Plus size={20} /> Add New Event
           </button>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {eventCards.map((card) => (
-            <Link to={`/event/${card.id}`} key={card.id} className="block">
-              <div
-                className={`event-card bg-white p-6 rounded-xl shadow-md border-l-4 ${card.ispublic ? "border-l-emerald-500" : "border-l-indigo-500"
+          {isLoading ? (
+            <div className="col-span-full flex justify-center items-center h-64">
+              <LoadingIcon size={58} color="border-l-indigo-500" />
+            </div>
+          ) : eventCards.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500">No events found.</div>
+          ) : (
+            eventCards.map((card) => (
+              <Link to={`/event/${card.id}`} key={card.id} className="block">
+                <div
+                  className={`event-card bg-white p-6 rounded-xl shadow-md border-l-4 ${
+                    card.ispublic ? "border-l-emerald-500" : "border-l-indigo-500"
                   } transition-transform transform hover:scale-105`}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-semibold text-lg text-gray-900">{card.title}</h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(e) => { e.preventDefault(); handleEditEvent(card); }}
-                      className="text-gray-400 hover:text-indigo-600 transition-colors"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={(e) => { e.preventDefault(); handleDeleteEvent(card.id); }}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash size={18} />
-                    </button>
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="font-semibold text-lg text-gray-900">{card.title}</h3>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleEditEvent(card)
+                        }}
+                        className="text-gray-400 hover:text-indigo-600 transition-colors"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleDeleteEvent(card.id)
+                        }}
+                        className="text-gray-400 hover:text-red-600 transition-colors"
+                      >
+                        <Trash size={18} />
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Calendar size={16} />
-                    <span>{card.dateofevent}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {card.ispublic ? (
-                      <Globe size={16} className="text-emerald-500" />
-                    ) : (
-                      <Lock size={16} className="text-indigo-500" />
-                    )}
-                    <span className={card.ispublic ? "text-emerald-500" : "text-indigo-500"}>
-                      {card.ispublic ? "Public Event" : "Private Event"}
-                    </span>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Calendar size={16} />
+                      <span>{card.dateofevent}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {card.ispublic ? (
+                        <Globe size={16} className="text-emerald-500" />
+                      ) : (
+                        <Lock size={16} className="text-indigo-500" />
+                      )}
+                      <span className={card.ispublic ? "text-emerald-500" : "text-indigo-500"}>
+                        {card.ispublic ? "Public Event" : "Private Event"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          )}
         </div>
       </div>
 
@@ -405,36 +419,26 @@ const EventSection = () => {
           <h2 className="text-2xl font-semibold mb-6">Create New Event</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Event Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
               <input
                 type="text"
-                placeholder="Enter event name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Event Name"
+                className="w-full p-2 border rounded-lg"
                 value={newEvent.eventName}
-                onChange={(e) =>
-                  setNewEvent((prev) => ({ ...prev, eventName: e.target.value }))
-                }
+                onChange={(e) => setNewEvent((prev) => ({ ...prev, eventName: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Event Date
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Date</label>
               <input
                 type="date"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.dateofevent}
-                onChange={(e) =>
-                  setNewEvent((prev) => ({ ...prev, dateofevent: e.target.value }))
-                }
+                onChange={(e) => setNewEvent((prev) => ({ ...prev, dateofevent: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Event Type
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.ispublic ? "Public" : "Private"}
@@ -473,35 +477,25 @@ const EventSection = () => {
           <h2 className="text-2xl font-semibold mb-6">Edit Event</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Event Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
               <input
                 type="text"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.title}
-                onChange={(e) =>
-                  setEditingEvent((prev) => ({ ...prev, title: e.target.value }))
-                }
+                onChange={(e) => setEditingEvent((prev) => ({ ...prev, title: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Event Date
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Date</label>
               <input
                 type="date"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.date}
-                onChange={(e) =>
-                  setEditingEvent((prev) => ({ ...prev, date: e.target.value }))
-                }
+                onChange={(e) => setEditingEvent((prev) => ({ ...prev, date: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Event Type
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.ispublic ? "Public" : "Private"}
@@ -534,7 +528,7 @@ const EventSection = () => {
         </Modal>
       )}
     </div>
-  );
-};
+  )
+}
 
 export default EventSection;
