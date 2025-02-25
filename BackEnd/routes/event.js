@@ -60,11 +60,11 @@ router.get('/:id', async (req, res) => {
 
 router.get("/", async (req, res) => {
     try {
-        const { isPublic } = req.query; // Get query parameter
+        const { ispublic } = req.query; // Get query parameter
         
         let query = {}; // Default: fetch all events
-        if (isPublic) {
-            query.ispublic = isPublic === "true"; // Convert to Boolean
+        if (ispublic) {
+            query.ispublic = ispublic === "true"; // Convert to Boolean
         }
 
         const allEvents = await Event.find(query);

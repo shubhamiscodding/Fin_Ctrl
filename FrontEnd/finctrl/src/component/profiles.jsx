@@ -34,7 +34,7 @@ const Profile = () => {
   const [randomEvent, setRandomEvent] = useState(null);
 
   useEffect(() => {
-    fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event?isPublic=true") // Fetch only public events
+    fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event?ispublic=true") // Fetch only public events
       .then(response => response.json())
       .then(data => {
         console.log("Fetched Events:", data); // Debugging
