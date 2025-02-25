@@ -35,6 +35,29 @@ router.get('/', async (req, res) => {
 });
 
 
+// ✅ GET event by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send("Invalid Event ID");
+        }
+
+        const event = await Event.findById(id);
+        if (!event) {
+            return res.status(404).send("Event not found");
+        }
+
+        res.status(200).json(event);
+    } catch (err) {
+        res.status(500).send("Error fetching event: " + err.message);
+    }
+});
+
+
+
+
 router.get('/', async (req, res) => {
     try {
         const { isPublic } = req.query; // Get query parameter

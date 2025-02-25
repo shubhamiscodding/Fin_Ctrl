@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { LoadingIcon } from "../components/ui/loading-icon"
+
 
 const User = ({ isSidebarOpen }) => {
     const [users, setUsers] = useState([]);
@@ -81,7 +83,9 @@ const User = ({ isSidebarOpen }) => {
                         </div>
                     </>
                 ) : (
-                    <p className="text-gray-500 text-center">Select a user to view details</p>
+                    <div className="col-span-full flex justify-center items-center h-64">
+                        <LoadingIcon size={58} color="border-l-indigo-500" />
+                    </div>
                 )}
             </div>
         </div>
