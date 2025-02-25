@@ -34,15 +34,16 @@ const Profile = () => {
   const [randomEvent, setRandomEvent] = useState(null);
 
   useEffect(() => {
-    fetch('https://fin-ctrl-1.onrender.com/FinCtrl/event?isPublic=true') // Fetch only public events
+    fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event?isPublic=true") // Fetch only public events
       .then(response => response.json())
       .then(data => {
+        console.log("Fetched Events:", data); // Debugging
         setEvents(data);
         if (data.length > 0) {
           setRandomEvent(data[Math.floor(Math.random() * data.length)]); // Pick a random event
         }
       })
-      .catch(error => console.error('Error fetching data:', error));
+      .catch(error => console.error("Error fetching data:", error));
   }, []);
 
   return (

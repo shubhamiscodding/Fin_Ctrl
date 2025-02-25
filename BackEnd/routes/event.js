@@ -58,19 +58,19 @@ router.get('/:id', async (req, res) => {
 
 
 
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
     try {
         const { isPublic } = req.query; // Get query parameter
         
         let query = {}; // Default: fetch all events
-        if (isPublic === "true") {
-            query.ispublic = true; // Filter only public events
+        if (isPublic) {
+            query.ispublic = isPublic === "true"; // Convert to Boolean
         }
 
         const allEvents = await Event.find(query);
         res.status(200).json(allEvents);
     } catch (err) {
-        res.status(500).send("Error fetching events: " + err.message);
+        res.status(500).json({ error: "Error fetching events", message: err.message });
     }
 });
 
