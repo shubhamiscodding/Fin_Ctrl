@@ -60,20 +60,19 @@ router.get('/:id', async (req, res) => {
 
 router.get("/", async (req, res) => {
     try {
-        const { ispublic } = req.query; // Get query parameter
-        
-        let query = {}; // Default: fetch all events
-        if (ispublic) {
-            query.ispublic = ispublic === "true"; // Convert to Boolean
-        }
-
-        const allEvents = await Event.find(query);
-        res.status(200).json(allEvents);
+      const { ispublic } = req.query
+  
+      const query = {}
+      if (ispublic !== undefined) {
+        query.ispublic = ispublic === "true"
+      }
+  
+      const allEvents = await Event.find(query)
+      res.status(200).json(allEvents)
     } catch (err) {
-        res.status(500).json({ error: "Error fetching events", message: err.message });
+      res.status(500).json({ error: "Error fetching events", message: err.message })
     }
-});
-
+  })
 
 // ✅ POST request
 router.post('/', async (req, res) => {

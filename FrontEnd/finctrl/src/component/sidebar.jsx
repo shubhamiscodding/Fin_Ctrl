@@ -1,10 +1,11 @@
-import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut, User } from "lucide-react"; // Add LogOut icon
-import { Link, useLocation } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react"; // Import Auth0 hooks
+import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut, User } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Add useNavigate
+import { useAuth0 } from "@auth0/auth0-react";
 import { useState, useEffect } from "react";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
+  const navigate = useNavigate(); // Add navigate hook
   const { logout, user, isAuthenticated } = useAuth0();
   const [profilePic, setProfilePic] = useState(localStorage.getItem("userPic"));
 
@@ -15,8 +16,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     }
   }, [user]);
 
-
-
   const menuItems = [
     { title: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
     { title: "Event", icon: <CalendarDays size={20} />, path: "/event" },
@@ -25,17 +24,20 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     { title: "Guide", icon: <FileText size={20} />, path: "/guide" },
   ];
 
-  // Handle logout
   const handleLogout = () => {
     logout({
-      returnTo: window.location.origin, // Redirect to the home page after logout
+      returnTo: window.location.origin,
     });
+  };
+
+  // Add handler for profile click
+  const handleProfileClick = () => {
+    navigate('/profile-dashboard');
   };
 
   return (
     <div className={`fixed h-screen top-0 left-0 bg-white shadow-lg transition-all duration-300 ${isCollapsed ? "w-20" : "w-62"}`}>
       {/* Sidebar Header */}
-
       <div className="flex items-center p-4 border-b">
         <div className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}>
           {!isCollapsed ? (
@@ -61,8 +63,9 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`flex items-center p-2 rounded-lg text-gray-700 transition ${location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
-                  }`}
+                className={`flex items-center p-2 rounded-lg text-gray-700 transition ${
+                  location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
+                }`}
               >
                 <span className="flex items-center justify-center">{item.icon}</span>
                 {!isCollapsed && <span className="ml-3">{item.title}</span>}
@@ -81,11 +84,13 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
           </li>
         </ul>
         {isAuthenticated && (
-          <div className="flex items-center gap-2 mt-35">
-            {isCollapsed &&
+          <div 
+            onClick={handleProfileClick}
+            className="flex items-center gap-2 mt-35 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors"
+          >
+            {isCollapsed ? (
               <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
-            }
-            {!isCollapsed &&
+            ) : (
               <div className="flex gap-1.5">
                 <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
                 <div>
@@ -93,7 +98,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                   <p className="text-xs text-gray-500">{user?.email}</p>
                 </div>
               </div>
-            }
+            )}
           </div>
         )}
       </nav>
