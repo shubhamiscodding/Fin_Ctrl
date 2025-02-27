@@ -219,4 +219,29 @@ router.get("/", verifyToken, async (req, res) => {
     }
 });
 
+
+// ✅ Delete user route (protected)
+router.delete('/:id', verifyToken, async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // Ensure only the user or an admin can delete the account
+        if (req.user.role !== 'admin' && req.user.id !== userId) {
+            return res.status(403).json({ message: "Access denied. Only admins or the user can delete this account" });
+        }
+
+        // Find and delete user
+        const deletedUser = await User.findByIdAndDelete(userId);
+        if (!deletedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting user: " + error.message });
+    }
+});
+
+
+
 module.exports = router;
