@@ -12,8 +12,9 @@ const User = ({ isSidebarOpen }) => {
         const fetchUsers = async () => {
             try {
                 const token = await getAccessTokenSilently();
+                console.log("Token:", token); // Log token
     
-                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/user/users", {
+                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/admin/users", {
                     method: "GET",
                     headers: {
                         "Authorization": `Bearer ${token}`,
@@ -21,11 +22,15 @@ const User = ({ isSidebarOpen }) => {
                     }
                 });
     
+                console.log("Response status:", response.status); // Log response status
+    
                 if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    const errorMessage = await response.text();
+                    throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorMessage}`);
                 }
     
                 const data = await response.json();
+                console.log("Users data:", data); // Log user data
                 setUsers(data);
             } catch (error) {
                 console.error("Error fetching users:", error);
@@ -34,6 +39,7 @@ const User = ({ isSidebarOpen }) => {
     
         fetchUsers();
     }, []);
+    
 
 
     return (
