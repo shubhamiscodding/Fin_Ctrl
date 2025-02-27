@@ -1,7 +1,9 @@
+import NotFound from "./notfound";
+
 const Guide = () => {
     return (
         <>
-            <p>Guide</p>
+            <NotFound />
         </>
     )
 }
