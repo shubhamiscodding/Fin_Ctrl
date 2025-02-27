@@ -48,5 +48,4 @@ This project aims to address these challenges by developing a comprehensive pers
 https://www.figma.com/proto/DNBtQzukvRqvlJOR15WNiD/FINAL-PROJECT?node-id=103-636&t=pu4XjTKv2pbC3geb-1
 
 
-## render backend deployed link
-https://fin-ctrl-1.onrender.com
+

@@ -13,14 +13,14 @@ import {
   Shield
 } from 'lucide-react';
 
-function ProfileDashboard() {
+function ProfileDashboard({ profilePic }) {
   // This would come from your auth system
   const mockUser = {
     name: "Sarah Johnson",
     email: "sarah.j@example.com",
     role: "user",
     joinDate: "January 2024",
-    profileImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200",
+    profileImage: "",
     isPublic: true,
     stats: {
       totalSavings: 45000,
@@ -73,7 +73,7 @@ function ProfileDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-44 mb-8">
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">Total Savings</h3>
@@ -85,29 +85,11 @@ function ProfileDashboard() {
 
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Monthly Budget</h3>
-              <PieChart className="h-5 w-5 text-indigo-600" />
-            </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">${mockUser.stats.monthlyBudget.toLocaleString()}</p>
-            <p className="text-sm text-gray-500 mt-1">70% remaining</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">Active Events</h3>
               <Calendar className="h-5 w-5 text-indigo-600" />
             </div>
             <p className="mt-2 text-3xl font-bold text-gray-900">{mockUser.stats.activeEvents}</p>
             <p className="text-sm text-gray-500 mt-1">Wedding, Vacation</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Investment Return</h3>
-              <TrendingUp className="h-5 w-5 text-indigo-600" />
-            </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{mockUser.stats.investmentReturn}%</p>
-            <p className="text-sm text-gray-500 mt-1">Year to date</p>
           </div>
         </div>
 

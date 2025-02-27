@@ -317,6 +317,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
 import { PlusCircle } from "lucide-react"
+import { toast } from 'react-toastify';
 
 export default function Eventdetail() {
   const { id } = useParams()
@@ -354,7 +355,15 @@ export default function Eventdetail() {
 
   const updateBudget = async () => {
     if (!newBudget || newBudget.trim() === "") {
-      alert("Please enter a valid budget amount.")
+      toast.error("Please enter a valid budget amount.", {
+        position: "top-right",
+        autoClose: 3000, // Toast disappears in 3 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
       return
     }
     setIsUpdating(true)
@@ -386,15 +395,39 @@ export default function Eventdetail() {
   const addExpense = async (e) => {
     e.preventDefault()
     if (!newExpense.description || newExpense.description.trim() === "") {
-      alert("Please enter a valid expense description.")
+      toast.error("Please enter a valid expense description.", {
+        position: "top-right",
+        autoClose: 3000, // Toast disappears in 3 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
       return
     }
     if (!newExpense.amount || newExpense.amount.trim() === "") {
-      alert("Please enter a valid expense amount.")
+      toast.error("Please enter a valid expense amount.", {
+        position: "top-right",
+        autoClose: 3000, // Toast disappears in 3 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
       return
     }
     if (!newExpense.date) {
-      alert("Please select a valid date for the expense.")
+      toast.error("Please select a valid date for the expense.", {
+        position: "top-right",
+        autoClose: 3000, // Toast disappears in 3 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
       return
     }
     setIsUpdating(true)
