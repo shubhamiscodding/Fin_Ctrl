@@ -1,25 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { LoadingIcon } from "../components/ui/loading-icon"
-
+import { useAuth0 } from "@auth0/auth0-react";  // Import Auth0 hook
 
 const User = ({ isSidebarOpen }) => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null); // Track selected user
 
+    const { getAccessTokenSilently } = useAuth0();  // Get token function
+    
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/admin");
+                const token = await getAccessTokenSilently();  // Get JWT token from Auth0
+    
+                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/admin", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,  // Add JWT token
+                        "Content-Type": "application/json"
+                    }
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+    
                 const data = await response.json();
                 setUsers(data);
             } catch (error) {
                 console.error("Error fetching users:", error);
             }
         };
-
+    
         fetchUsers();
     }, []);
 
+    
     return (
         <div className={`min-h-screen bg-white p-8 flex justify-evenly transition-all duration-300 ${isSidebarOpen ? "ml-64" : "-ml-8"}`}>
             {/* Users Grid */}

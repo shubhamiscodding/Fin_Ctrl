@@ -178,4 +178,11 @@ router.get('/login', verifyToken, async (req, res) => {
     }
 });
 
+
+app.get("/", verifyToken, async (req, res) => {
+    const users = await User.find(); // Fetch users from DB
+    res.json(users);
+});
+
+
 module.exports = router;
