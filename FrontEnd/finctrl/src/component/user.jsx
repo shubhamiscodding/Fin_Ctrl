@@ -13,7 +13,7 @@ const User = ({ isSidebarOpen }) => {
             try {
                 const token = await getAccessTokenSilently();
     
-                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/admin/users", {
+                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/user/users", {
                     method: "GET",
                     headers: {
                         "Authorization": `Bearer ${token}`,
