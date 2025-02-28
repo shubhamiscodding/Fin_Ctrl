@@ -190,15 +190,12 @@ import { useNavigate } from "react-router-dom";
 
 const loginUser = async (email, password, role) => {
   try {
-    const endpoint =
-      role === "admin"
-        ? "http://localhost:3000/FinCtrl/admin/login"
-        : "http://localhost:3000/FinCtrl/user/login";
+    const endpoint ="http://localhost:3000/FinCtrl/user/login";
 
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password,role }),
     });
 
     const data = await response.json();
