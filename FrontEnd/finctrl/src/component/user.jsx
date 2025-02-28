@@ -1,76 +1,73 @@
 import React, { useEffect, useState } from 'react';
-import { LoadingIcon } from "../components/ui/loading-icon"
-import { useAuth0 } from "@auth0/auth0-react";  // Import Auth0 hook
+import { LoadingIcon } from "../components/ui/loading-icon";
 
 const User = ({ isSidebarOpen }) => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null); // Track selected user
 
-    const { getAccessTokenSilently } = useAuth0();  // Get token function
-    
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const token = await getAccessTokenSilently();
-                console.log("Token:", token); // Log token
-    
-                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/admin/users", {
+                const token = localStorage.getItem("token"); // Get JWT token
+                if (!token) {
+                    console.error("No token found, please log in.");
+                    return;
+                }
+
+                const response = await fetch("http://localhost:3000/FinCtrl/admin/users", {
                     method: "GET",
                     headers: {
                         "Authorization": `Bearer ${token}`,
                         "Content-Type": "application/json"
                     }
                 });
-    
-                console.log("Response status:", response.status); // Log response status
-    
+
                 if (!response.ok) {
                     const errorMessage = await response.text();
                     throw new Error(`HTTP error! Status: ${response.status}, Message: ${errorMessage}`);
                 }
-    
+
                 const data = await response.json();
-                console.log("Users data:", data); // Log user data
-                setUsers(data);
+                setUsers(data); // Set user data
             } catch (error) {
                 console.error("Error fetching users:", error);
             }
         };
-    
+
         fetchUsers();
     }, []);
-    
-
 
     return (
         <div className={`min-h-screen bg-white p-8 flex justify-evenly transition-all duration-300 ${isSidebarOpen ? "ml-64" : "-ml-8"}`}>
             {/* Users Grid */}
             <div className={`transition-all duration-300 ${isSidebarOpen ? "w-1/3" : "w-1/2"}`}>
                 <div className="grid grid-cols-2 gap-5">
-                    {users.map((user) => (
-                        <div
-                            key={user.id}
-                            onClick={() => setSelectedUser(user)}
-                            className="p-4 bg-white rounded-lg shadow-lg flex items-center space-x-3 cursor-pointer transition-all duration-300"
-                        >
-                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                </svg>
+                    {users.length > 0 ? (
+                        users.map((user) => (
+                            <div
+                                key={user._id}
+                                onClick={() => setSelectedUser(user)}
+                                className="p-4 bg-white rounded-lg shadow-lg flex items-center space-x-3 cursor-pointer transition-all duration-300"
+                            >
+                                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 className="font-medium">{user.name}</h3>
+                                    <p className="text-sm text-gray-500">{user._id}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-medium">{user.name}</h3>
-                                <p className="text-sm text-gray-500">{user.id}</p>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <p className="text-gray-500">No users found.</p>
+                    )}
                 </div>
             </div>
 
             {/* User Details Panel */}
-            <div
-                className={`transition-all duration-300 p-6 bg-white shadow-lg rounded-lg ${isSidebarOpen ? "w-1/2" : "w-1/3"}`}
-            >
+            <div className={`transition-all duration-300 p-6 bg-white shadow-lg rounded-lg ${isSidebarOpen ? "w-1/2" : "w-1/3"}`}>
                 {selectedUser ? (
                     <>
                         <div className="flex justify-center items-center mb-4 bg-gray-300 h-32">
@@ -88,12 +85,12 @@ const User = ({ isSidebarOpen }) => {
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">Email: </span>
-                                <span>{selectedUser.email || "Loading..."}</span>
+                                <span>{selectedUser.email || "N/A"}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">ID: </span>
-                                <span>{selectedUser.id}</span>
+                                <span>{selectedUser._id}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
 

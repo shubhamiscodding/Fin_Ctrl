@@ -1,13 +1,12 @@
-import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut, User } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Add useNavigate
-import { useAuth0 } from "@auth0/auth0-react";
+import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
-  const navigate = useNavigate(); // Add navigate hook
-  const { logout, user, isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
   const [profilePic, setProfilePic] = useState(localStorage.getItem("userPic"));
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
 
   useEffect(() => {
     if (user?.picture) {
@@ -25,19 +24,18 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   ];
 
   const handleLogout = () => {
-    logout({
-      returnTo: window.location.origin,
-    });
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userPic");
+    navigate("/login");
   };
 
-  // Add handler for profile click
   const handleProfileClick = () => {
-    navigate('/profile-dashboard');
+    navigate("/profile-dashboard");
   };
 
   return (
     <div className={`fixed h-screen top-0 left-0 bg-white shadow-lg transition-all duration-300 ${isCollapsed ? "w-20" : "w-62"}`}>
-      {/* Sidebar Header */}
       <div className="flex items-center p-4 border-b">
         <div className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}>
           {!isCollapsed ? (
@@ -56,7 +54,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         </div>
       </div>
 
-      {/* Sidebar Menu */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {menuItems.map((item) => (
@@ -72,7 +69,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               </Link>
             </li>
           ))}
-          {/* Logout Button */}
           <li>
             <button
               onClick={handleLogout}
@@ -83,7 +79,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             </button>
           </li>
         </ul>
-        {isAuthenticated && (
+        {user && (
           <div 
             onClick={handleProfileClick}
             className="flex items-center gap-2 mt-35 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors"

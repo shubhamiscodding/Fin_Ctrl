@@ -116,28 +116,133 @@
 // }
 
 
+// import { useAuth0 } from "@auth0/auth0-react";
+// import { useEffect, useState } from "react";
 
-import { useAuth0 } from "@auth0/auth0-react";
+// const Login = () => {
+//   const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
+//   const [backendToken, setBackendToken] = useState(null);
+
+//   useEffect(() => {
+//     const authenticateWithBackend = async () => {
+//       if (isAuthenticated && user) {
+//         try {
+//           const email = user.email;
+
+//           // 🔹 Determine role (assuming frontend sets this)
+//           const role = email.includes("admin") ? "admin" : "user";
+
+//           // 🔹 Send login request to backend using Fetch API
+//           const response = await fetch("http://localhost:3000/api/user/login", {
+//             method: "POST",
+//             headers: {
+//               "Content-Type": "application/json",
+//             },
+//             body: JSON.stringify({ email, role }),
+//           });
+
+//           if (!response.ok) {
+//             throw new Error(`Login failed: ${response.statusText}`);
+//           }
+
+//           const data = await response.json();
+//           setBackendToken(data.token);
+
+//           console.log("Logged in successfully:", data);
+//         } catch (error) {
+//           console.error("Login failed:", error.message);
+//         }
+//       }
+//     };
+
+//     authenticateWithBackend();
+//   }, [isAuthenticated, user]);
+
+//   return (
+//     <div>
+//       {isAuthenticated ? (
+//         <>
+//           <h2>Welcome, {user.name}</h2>
+//           <button onClick={() => logout({ returnTo: window.location.origin })}>Logout</button>
+//         </>
+//       ) : (
+//         <button onClick={() => loginWithRedirect()}>Login</button>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default Login;
+
+
+
+
+
+
+
+
+
+
+
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+const loginUser = async (email, password, role) => {
+  try {
+    const endpoint =
+      role === "admin"
+        ? "http://localhost:3000/FinCtrl/admin/login"
+        : "http://localhost:3000/FinCtrl/user/login";
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Login failed");
+
+    localStorage.setItem("token", data.token); // Store JWT
+    console.log("Login successful:", data);
+    return data;
+  } catch (error) {
+    console.error("Login Error:", error.message);
+  }
+};
 
 const Login = () => {
-  const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
+  const [formData, setFormData] = useState({ email: "", password: "", role: "user" });
+  const navigate = useNavigate();
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const data = await loginUser(formData.email, formData.password, formData.role);
+    if (data) navigate("/dashboard");
+  };
 
   return (
-    <div>
-      {!isAuthenticated ? (
-        <button onClick={() => loginWithRedirect()}>Log in</button>
-      ) : (
-        <>
-          <p>Welcome, {user.name}</p>
-          <button onClick={() => logout({ returnTo: window.location.origin })}>
-            Log out
-          </button>
-        </>
-      )}
+    <div className="flex flex-col items-center justify-center h-screen">
+      <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded-lg w-80">
+        <h2 className="text-xl font-semibold mb-4 text-center">Login</h2>
+        <input type="email" name="email" placeholder="Email" onChange={handleChange} required className="w-full p-2 mb-3 border rounded" />
+        <input type="password" name="password" placeholder="Password" onChange={handleChange} required className="w-full p-2 mb-3 border rounded" />
+        
+        <select name="role" onChange={handleChange} className="w-full p-2 mb-3 border rounded">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+
+        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+      </form>
+
+      <p className="mt-4 text-gray-600">Don't have an account?</p>
+      <button onClick={() => navigate("/signup")} className="mt-2 text-blue-500 hover:underline">Signup</button>
     </div>
   );
 };
 
 export default Login;
-
-
