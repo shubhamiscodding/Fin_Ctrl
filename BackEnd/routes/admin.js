@@ -178,4 +178,21 @@ router.get('/login', verifyToken, async (req, res) => {
     }
 });
 
+router.get('/users', verifyToken, async (req, res) => {
+    try {
+        const adminId = req.user.id; // Extract admin ID from JWT
+
+        // Find the admin and populate managed users
+        const admin = await Admin.findById(adminId).populate('managedUsers.userId');
+
+        if (!admin || admin.managedUsers.length === 0) {
+            return res.status(404).json({ message: "No users found for this admin" });
+        }
+
+        res.status(200).json(admin.managedUsers);
+    } catch (error) {
+        res.status(500).json({ message: "Server error: " + error.message });
+    }
+});
+
 module.exports = router;

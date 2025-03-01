@@ -317,7 +317,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
 import { PlusCircle } from "lucide-react"
-import { toast } from 'react-toastify';
 
 export default function Eventdetail() {
   const { id } = useParams()
@@ -355,15 +354,7 @@ export default function Eventdetail() {
 
   const updateBudget = async () => {
     if (!newBudget || newBudget.trim() === "") {
-      toast.error("Please enter a valid budget amount.", {
-        position: "top-right",
-        autoClose: 3000, // Toast disappears in 3 seconds
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+      alert("Please enter a valid budget amount.")
       return
     }
     setIsUpdating(true)
@@ -395,39 +386,15 @@ export default function Eventdetail() {
   const addExpense = async (e) => {
     e.preventDefault()
     if (!newExpense.description || newExpense.description.trim() === "") {
-      toast.error("Please enter a valid expense description.", {
-        position: "top-right",
-        autoClose: 3000, // Toast disappears in 3 seconds
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+      alert("Please enter a valid expense description.")
       return
     }
     if (!newExpense.amount || newExpense.amount.trim() === "") {
-      toast.error("Please enter a valid expense amount.", {
-        position: "top-right",
-        autoClose: 3000, // Toast disappears in 3 seconds
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+      alert("Please enter a valid expense amount.")
       return
     }
     if (!newExpense.date) {
-      toast.error("Please select a valid date for the expense.", {
-        position: "top-right",
-        autoClose: 3000, // Toast disappears in 3 seconds
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+      alert("Please select a valid date for the expense.")
       return
     }
     setIsUpdating(true)
@@ -480,8 +447,8 @@ export default function Eventdetail() {
   const percentage = (usedAmount / totalAmount) * 100
 
   const data = [
-    { name: "Used", value: percentage, fill: "#000" },
-    { name: "Remaining", value: 100 - percentage, fill: "#60a5fa" },
+    { name: "usedAmount", value: percentage, fill: "#000" },
+    { name: "totalAmount", value: 100, fill: "#60a5fa" },
   ]
 
   return (
