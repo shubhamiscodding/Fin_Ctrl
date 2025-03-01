@@ -86,19 +86,19 @@ const User = ({ isSidebarOpen }) => {
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">Email: </span>
-                                <span>{selectedUser.email || "N/A"}</span>
+                                <span>{selectedUser.userId.email}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
                             <div>
-                                <span className="text-sm font-semibold">ID: </span>
-                                <span>{selectedUser._id}</span>
+                                <span className="text-sm font-semibold">Date:  </span>
+                                <span>{new Date(selectedUser.userId.createdAt).toISOString().split('T')[0]}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
 
                             <div className="space-y-2 pt-2">
                                 <button className="w-full py-2 px-4 bg-gray-100 text-gray-800 rounded">See More</button>
                                 <button className="w-full py-2 px-4 bg-red-500 text-white rounded">Delete User</button>
-                                <button className="w-full py-2 px-4 bg-orange-400 text-white rounded">Give Admin Power</button>
+                                {/* <button className="w-full py-2 px-4 bg-orange-400 text-white rounded">Give Admin Power</button> */}
                             </div>
                         </div>
                     </>
