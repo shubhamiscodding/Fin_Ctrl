@@ -14,7 +14,7 @@ const User = ({ isSidebarOpen }) => {
                     return;
                 }
 
-                const response = await fetch("http://localhost:3000/FinCtrl/admin/users", {
+                const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/admin/users", {
                     method: "GET",
                     headers: {
                         "Authorization": `Bearer ${token}`,

@@ -5,8 +5,8 @@ import { Eye, EyeOff, Mail, Lock, User, ArrowRight, UserPlus, Key, Shield } from
 const registerUser = async (userData, role) => {
   const endpoint =
     role === "admin"
-      ? "http://localhost:3000/FinCtrl/admin/register"
-      : "http://localhost:3000/FinCtrl/user/register";
+      ? "https://fin-ctrl-1.onrender.com/FinCtrl/admin/register"
+      : "https://fin-ctrl-1.onrender.com/FinCtrl/user/register";
 
   try {
     const response = await fetch(endpoint, {

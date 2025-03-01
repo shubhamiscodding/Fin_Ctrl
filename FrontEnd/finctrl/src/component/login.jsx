@@ -186,7 +186,7 @@ import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 
 const loginUser = async (email, password, role) => {
   try {
-    const endpoint = "http://localhost:3000/FinCtrl/user/login";
+    const endpoint = "https://fin-ctrl-1.onrender.com/FinCtrl/user/login";
 
     const response = await fetch(endpoint, {
       method: "POST",
