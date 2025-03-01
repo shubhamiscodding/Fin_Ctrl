@@ -84,16 +84,17 @@ const FinancePlanSchema = new Schema({
 
 // Event Schema
 const EventSchema = new Schema({
-  eventName: { type: String, required: true },
-  budget: { type: Number, required: true },
-  expenses: { type: [ExpenseSchema], default: [] },
-  totalSpent: { type: Number, default: 0 },
-  remainingBudget: {
-    type: Number,
-    default: function () {
-      return this.budget;
-    },
-  },
+  event_id: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true }],
+  // eventName: { type: String, required: true },
+  // budget: { type: Number, required: true },
+  // expenses: { type: [ExpenseSchema], default: [] },
+  // totalSpent: { type: Number, default: 0 },
+  // remainingBudget: {
+  //   type: Number,
+  //   default: function () {
+  //     return this.budget;
+  //   },
+  // },
 });
 
 // Auto-update totalSpent and remainingBudget
@@ -118,6 +119,8 @@ const AdminSchema = new Schema(
     password: { type: String, required: true },
     managedUsers: { type: [ManagedUserSchema], default: [] },
     passForUser: { type: String, required: true }, // Consider encrypting this
+    events: [{ type: [EventSchema], default:[] }], // Reference instead of embedding
+    // financeData: [{ type: mongoose.Schema.Types.ObjectId, ref: "FinancePlan" }], // Reference instead of embedding
   },
   { timestamps: true }
 );

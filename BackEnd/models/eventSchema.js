@@ -19,7 +19,7 @@ const EventSchema = new Schema(
     remainingBudget: { type: Number, default: 0 },
     description: { type: String, default: "N/A" },
     dateofevent: { type: Date, default: Date.now, require:true },
-    ispublic: { type: Boolean, default: false }, 
+    ispublic: { type: Boolean, default: false, require:true }, 
     createdBy: { type: mongoose.Schema.Types.ObjectId, refPath: "createdByModel", required: true },
     createdByModel: { type: String, required: true, enum: ["User", "Admin"] },
   },

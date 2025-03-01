@@ -586,7 +586,7 @@ const EventSection = () => {
         return;
       }
 
-      const response = await fetch("https://fin-ctrl-1.onrender.com/events", {
+      const response = await fetch("http://localhost:3000/FinCtrl/admin/eventss", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
