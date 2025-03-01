@@ -624,7 +624,7 @@ const EventSection = () => {
         return;
       }
 
-      const response = await fetch("https://fin-ctrl-1.onrender.com/events", {
+      const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -655,7 +655,7 @@ const EventSection = () => {
         return;
       }
 
-      const response = await fetch(`https://fin-ctrl-1.onrender.com/events/${id}`, {
+      const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -702,7 +702,7 @@ const EventSection = () => {
         description: editingEvent.description,
       };
 
-      const response = await fetch(`https://fin-ctrl-1.onrender.com/events/${editingEvent.id}`, {
+      const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${editingEvent.id}`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
