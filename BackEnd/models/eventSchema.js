@@ -20,7 +20,8 @@ const EventSchema = new Schema(
     description: { type: String, default: "N/A" },
     dateofevent: { type: Date, default: Date.now, require:true },
     ispublic: { type: Boolean, default: false }, 
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, refPath: "createdByModel", required: true },
+    createdByModel: { type: String, required: true, enum: ["User", "Admin"] },
   },
   { timestamps: true }
 );
