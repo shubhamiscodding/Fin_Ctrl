@@ -29,6 +29,7 @@ const User = ({ isSidebarOpen }) => {
 
                 const data = await response.json();
                 setUsers(data); // Set user data
+                console.log("Users fetched:", data);
             } catch (error) {
                 console.error("Error fetching users:", error);
             }
@@ -55,8 +56,8 @@ const User = ({ isSidebarOpen }) => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="font-medium">{user.name}</h3>
-                                    <p className="text-sm text-gray-500">{user._id}</p>
+                                    <h3 className="font-medium">{user.userId.username}</h3>
+                                    <p className="text-sm text-gray-500">{user.userId.email}</p>
                                 </div>
                             </div>
                         ))
@@ -81,7 +82,7 @@ const User = ({ isSidebarOpen }) => {
                         <div className="space-y-3">
                             <div>
                                 <span className="text-sm font-semibold">Name: </span>
-                                <span>{selectedUser.name}</span>
+                                <span>{selectedUser.userId.username}</span>
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">Email: </span>
