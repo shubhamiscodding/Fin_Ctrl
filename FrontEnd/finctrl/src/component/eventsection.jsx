@@ -210,6 +210,7 @@
 // export default EventSection;
 
 
+
 import { useState, useEffect } from "react"
 import { Trash, Calendar, Globe, Lock, Plus, Edit2 } from "lucide-react"
 import { Link } from "react-router-dom"
@@ -426,6 +427,7 @@ const EventSection = () => {
                 className="w-full p-2 border rounded-lg"
                 value={newEvent.eventName}
                 onChange={(e) => setNewEvent((prev) => ({ ...prev, eventName: e.target.value }))}
+                autoFocus
               />
             </div>
             <div>
@@ -483,6 +485,7 @@ const EventSection = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.title}
                 onChange={(e) => setEditingEvent((prev) => ({ ...prev, title: e.target.value }))}
+                autoFocus
               />
             </div>
             <div>
