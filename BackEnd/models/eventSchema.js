@@ -6,28 +6,36 @@ const Schema = mongoose.Schema;
 const ExpenseSchema = new Schema({
   date: { type: Date, required: true },
   description: { type: String, required: true },
-  amount: { type: Number, required: true },
+  amount: { type: Number, required: true, min: 0 },
 });
 
 // Event Schema
 const EventSchema = new Schema(
   {
     eventName: { type: String, required: true },
-    budget: { type: Number, default: 0 }, // Set default to 0
+    budget: { type: Number, default: 0, min: 0 },
     expenses: { type: [ExpenseSchema], default: [] },
     totalSpent: { type: Number, default: 0 },
     remainingBudget: { type: Number, default: 0 },
     description: { type: String, default: "N/A" },
-    dateofevent: { type: Date, default: Date.now, require:true },
-    ispublic: { type: Boolean, default: false, require:true }, 
-    createdBy: { type: mongoose.Schema.Types.ObjectId, refPath: "createdByModel", required: true },
-    createdByModel: { type: String, required: true, enum: ["User", "Admin"] },
+    dateofevent: { type: Date, default: Date.now, required: true },
+    ispublic: { type: Boolean, default: false, required: true },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      refPath: "createdByModel",
+      required: true,
+    },
+    createdByModel: {
+      type: String,
+      required: true,
+      enum: ["User", "Admin"],
+    },
   },
   { timestamps: true }
 );
 
-// Pre-save hook to update totalSpent and remainingBudget
-EventSchema.pre("save", function (next) {
+// Middleware to update totalSpent and remainingBudget before saving
+EventSchema.pre("validate", function (next) {
   this.totalSpent = this.expenses.reduce((sum, expense) => sum + expense.amount, 0);
   this.remainingBudget = this.budget - this.totalSpent;
   next();
@@ -35,8 +43,6 @@ EventSchema.pre("save", function (next) {
 
 // Indexes for performance
 EventSchema.index({ createdBy: 1 });
-EventSchema.index({ eventId: 1 });
 
 const Event = mongoose.model("Event", EventSchema);
-
 module.exports = Event;

@@ -62,11 +62,9 @@
 
 
 
-
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const Admin = require("./adminSchema");
 
 const Schema = mongoose.Schema;
 
@@ -90,9 +88,10 @@ const UserSchema = new Schema(
     username: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true }, // Will be encrypted
+    role: { type: String, enum: ["user", "admin"], default: "user" }, // Added role field
     events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
     financePlans: [{ type: mongoose.Schema.Types.ObjectId, ref: "FinancePlan" }],
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: false }, // Made optional
   },
   { timestamps: true }
 );
@@ -112,14 +111,17 @@ UserSchema.methods.comparePassword = async function (enteredPassword) {
 
 // ✅ Generate JWT token
 UserSchema.methods.generateAuthToken = function () {
-  return jwt.sign({ id: this._id, role: "user" }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
     expiresIn: "1h",
   });
 };
 
-// After user creation, add them to the respective Admin's managed users
+// After user creation, add them to the respective Admin's managed users (to prevent circular dependency)
 UserSchema.post("save", async function (doc) {
+  if (!doc.admin) return; // Only execute if admin exists
+
   try {
+    const Admin = mongoose.model("Admin"); // Fetch Admin model dynamically
     const admin = await Admin.findById(doc.admin);
 
     if (admin) {
@@ -143,6 +145,5 @@ UserSchema.post("save", async function (doc) {
 // Indexes for performance
 UserSchema.index({ email: 1 });
 
-// User Model
 const User = mongoose.model("User", UserSchema);
 module.exports = User;

@@ -60,8 +60,6 @@
 // module.exports = Admin;
 
 
-
-
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -72,29 +70,28 @@ const Schema = mongoose.Schema;
 const ExpenseSchema = new Schema({
   date: { type: Date, required: true },
   description: { type: String, required: true },
-  amount: { type: Number, required: true },
+  amount: { type: Number, required: true, min: 0 },
 });
 
 // Finance Plan Schema
 const FinancePlanSchema = new Schema({
   planName: { type: String, required: true },
-  goalAmount: { type: Number, required: true },
+  goalAmount: { type: Number, required: true, min: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 
-// Event Schema
+// Event Schema (Reference instead of Embedding)
 const EventSchema = new Schema({
-  event_id: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true }],
-  // eventName: { type: String, required: true },
-  // budget: { type: Number, required: true },
-  // expenses: { type: [ExpenseSchema], default: [] },
-  // totalSpent: { type: Number, default: 0 },
-  // remainingBudget: {
-  //   type: Number,
-  //   default: function () {
-  //     return this.budget;
-  //   },
-  // },
+  eventName: { type: String, required: true },
+  budget: { type: Number, required: true, min: 0 },
+  expenses: { type: [ExpenseSchema], default: [] },
+  totalSpent: { type: Number, default: 0 },
+  remainingBudget: {
+    type: Number,
+    default: function () {
+      return this.budget;
+    },
+  },
 });
 
 // Auto-update totalSpent and remainingBudget
@@ -116,11 +113,10 @@ const AdminSchema = new Schema(
   {
     adminName: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true }, // Encrypted password
+    role: { type: String, enum: ["admin"], default: "admin" }, // Added role field for consistency
     managedUsers: { type: [ManagedUserSchema], default: [] },
-    passForUser: { type: String, required: true }, // Consider encrypting this
-    events: [{ type: [EventSchema], default:[] }], // Reference instead of embedding
-    // financeData: [{ type: mongoose.Schema.Types.ObjectId, ref: "FinancePlan" }], // Reference instead of embedding
+    events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }], // Store event references
   },
   { timestamps: true }
 );
@@ -140,7 +136,7 @@ AdminSchema.methods.comparePassword = async function (enteredPassword) {
 
 // ✅ Generate JWT token
 AdminSchema.methods.generateAuthToken = function () {
-  return jwt.sign({ id: this._id, role: "admin" }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: this._id, role: this.role }, process.env.JWT_SECRET, {
     expiresIn: "1h",
   });
 };
@@ -149,6 +145,5 @@ AdminSchema.methods.generateAuthToken = function () {
 AdminSchema.index({ email: 1 });
 ManagedUserSchema.index({ userId: 1 });
 
-// Admin Model
 const Admin = mongoose.model("Admin", AdminSchema);
 module.exports = Admin;

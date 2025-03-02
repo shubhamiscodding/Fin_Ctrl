@@ -160,35 +160,46 @@ router.delete("/:id", verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
 
+        console.log(`Attempting to delete event with ID: ${id}`);
+
         if (!ObjectId.isValid(id)) {
+            console.log(`Invalid event ID: ${id}`);
             return res.status(400).json({ message: "Invalid event ID" });
         }
 
         const event = await Event.findById(id);
         if (!event) {
+            console.log(`Event not found for ID: ${id}`);
             return res.status(404).json({ message: "Event not found" });
         }
 
         // Check permissions
+        console.log(`User role: ${req.user.role}, User ID: ${req.user.id}, Event creator: ${event.createdBy}`);
         if (req.user.role !== "admin" && event.createdBy.toString() !== req.user.id) {
+            console.log(`Unauthorized attempt by user ${req.user.id} to delete event ${id}`);
             return res.status(403).json({ message: "Unauthorized to delete this event" });
         }
 
-        const result = await Event.deleteOne({ _id: new ObjectId(id) });
+        const deleteResult = await Event.deleteOne({ _id: id }); // Simplified, no need for new ObjectId
+        console.log(`Delete result: ${JSON.stringify(deleteResult)}`);
 
-        if (result.deletedCount === 0) {
+        if (deleteResult.deletedCount === 0) {
+            console.log(`No event deleted for ID: ${id}`);
             return res.status(404).json({ message: "Event not found" });
         }
 
         // Remove event reference from User or Admin
         if (req.user.role === "user") {
-            await User.findByIdAndUpdate(req.user.id, { $pull: { events: id } });
+            const userUpdate = await User.findByIdAndUpdate(req.user.id, { $pull: { events: id } });
+            console.log(`User update result: ${JSON.stringify(userUpdate)}`);
         } else if (req.user.role === "admin") {
-            await Admin.findByIdAndUpdate(req.user.id, { $pull: { events: id } });
+            const adminUpdate = await Admin.findByIdAndUpdate(req.user.id, { $pull: { events: id } });
+            console.log(`Admin update result: ${JSON.stringify(adminUpdate)}`);
         }
 
         res.status(200).json({ message: "Event deleted successfully" });
     } catch (err) {
+        console.error(`Error in DELETE /event/${id}:`, err.stack); // Log full error stack
         res.status(500).json({ message: "Error deleting event: " + err.message });
     }
 });

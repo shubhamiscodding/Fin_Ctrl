@@ -545,16 +545,13 @@
 
 
 
-
-
 import { useState, useEffect } from "react";
 import { Trash, Calendar, Globe, Lock, Plus, Edit2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { LoadingIcon } from "../components/ui/loading-icon";
 import "../App.css";
 
-// Assuming you have a way to get the token (e.g., from login)
-const getToken = () => localStorage.getItem("token"); // Example: retrieve token from localStorage
+const getToken = () => localStorage.getItem("token");
 
 const EventSection = () => {
   const [eventCards, setEventCards] = useState([]);
@@ -562,8 +559,8 @@ const EventSection = () => {
     eventName: "",
     dateofevent: "",
     ispublic: false,
-    budget: 0, // Added to match backend schema
-    description: "", // Added to match backend schema
+    budget: 0,
+    description: "",
   });
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -582,13 +579,13 @@ const EventSection = () => {
     try {
       const token = getToken();
       if (!token) {
-        navigate("/login"); // Redirect to login if no token
+        navigate("/login");
         return;
       }
 
-      const response = await fetch("/FinCtrl/admin/eventss", {
+      const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event", {
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -602,7 +599,9 @@ const EventSection = () => {
       const formattedEvents = events.map((event) => ({
         id: event._id,
         title: event.eventName,
-        dateofevent: event.dateofevent ? new Date(event.dateofevent).toISOString().split("T")[0] : "No Date",
+        dateofevent: event.dateofevent
+          ? new Date(event.dateofevent).toISOString().split("T")[0]
+          : "No Date",
         ispublic: event.ispublic,
         budget: event.budget,
         description: event.description,
@@ -627,7 +626,7 @@ const EventSection = () => {
       const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(newEvent),
@@ -638,9 +637,10 @@ const EventSection = () => {
         throw new Error(`API error: ${response.status}`);
       }
 
-      await fetchEvents();
+      await fetchEvents(); // Refresh events after adding
       setShowModal(false);
       setNewEvent({ eventName: "", dateofevent: "", ispublic: false, budget: 0, description: "" });
+      setError(null); // Clear error on success
     } catch (error) {
       console.error("Error adding event:", error);
       setError(error.message);
@@ -649,32 +649,34 @@ const EventSection = () => {
 
   const handleDeleteEvent = async (id) => {
     try {
-      const token = getToken();
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+        const token = getToken();
+        if (!token) {
+            navigate("/login");
+            return;
+        }
 
-      const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+        const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
 
-      if (!response.ok) {
-        if (response.status === 401) throw new Error("Unauthorized - Please log in");
-        if (response.status === 403) throw new Error("You don't have permission to delete this event");
-        throw new Error(`API error: ${response.status}`);
-      }
+        if (!response.ok) {
+            const errorData = await response.json(); // Get the error message from the server
+            if (response.status === 401) throw new Error("Unauthorized - Please log in");
+            if (response.status === 403) throw new Error("You don't have permission to delete this event");
+            throw new Error(`API error: ${response.status} - ${errorData.message || "Unknown error"}`);
+        }
 
-      setEventCards((prev) => prev.filter((event) => event.id !== id));
+        setEventCards((prev) => prev.filter((event) => event.id !== id));
+        setError(null);
     } catch (error) {
-      console.error("Error deleting event:", error);
-      setError(error.message);
+        console.error("Error deleting event:", error);
+        setError(error.message);
     }
-  };
+};
 
   const handleEditEvent = (event) => {
     setEditingEvent({
@@ -705,7 +707,7 @@ const EventSection = () => {
       const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${editingEvent.id}`, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formattedEvent),
@@ -717,9 +719,10 @@ const EventSection = () => {
         throw new Error(`API error: ${response.status}`);
       }
 
-      await fetchEvents();
+      await fetchEvents(); // Refresh events after updating
       setShowEditModal(false);
       setEditingEvent(null);
+      setError(null); // Clear error on success
     } catch (error) {
       console.error("Error updating event:", error);
       setError(error.message);
@@ -805,6 +808,8 @@ const EventSection = () => {
                         {card.ispublic ? "Public Event" : "Private Event"}
                       </span>
                     </div>
+                    <div className="text-gray-600">Budget: ${card.budget}</div>
+                    <div className="text-gray-600 truncate">{card.description}</div>
                   </div>
                 </div>
               </Link>
@@ -845,7 +850,6 @@ const EventSection = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.budget}
                 onChange={(e) => setNewEvent((prev) => ({ ...prev, budget: Number(e.target.value) }))}
-                autoFocus
               />
             </div>
             <div>
@@ -854,7 +858,6 @@ const EventSection = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.description}
                 onChange={(e) => setNewEvent((prev) => ({ ...prev, description: e.target.value }))}
-                autoFocus
               />
             </div>
             <div>
@@ -922,7 +925,6 @@ const EventSection = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.budget}
                 onChange={(e) => setEditingEvent((prev) => ({ ...prev, budget: Number(e.target.value) }))}
-                autoFocus
               />
             </div>
             <div>
