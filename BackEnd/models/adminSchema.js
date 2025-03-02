@@ -116,7 +116,7 @@ const AdminSchema = new Schema(
     password: { type: String, required: true }, // Encrypted password
     role: { type: String, enum: ["admin"], default: "admin" }, // Added role field for consistency
     managedUsers: { type: [ManagedUserSchema], default: [] },
-    events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }], // Store event references
+    events: [{ type: [EventSchema], ref: "Event" }], // Store event references
   },
   { timestamps: true }
 );
