@@ -544,7 +544,6 @@
 
 
 
-
 import { useState, useEffect } from "react";
 import { Trash, Calendar, Globe, Lock, Plus, Edit2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -568,6 +567,20 @@ const EventSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // Determine user role from token (optional, for UI purposes)
+  const getUserRole = () => {
+    const token = getToken();
+    if (!token) return null;
+    try {
+      const decoded = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
+      return decoded.role;
+    } catch (e) {
+      console.error("Error decoding token:", e);
+      return null;
+    }
+  };
+  const userRole = getUserRole();
 
   useEffect(() => {
     fetchEvents();
@@ -605,6 +618,8 @@ const EventSection = () => {
         ispublic: event.ispublic,
         budget: event.budget,
         description: event.description,
+        createdBy: event.createdBy, // Include creator ID for admin view
+        createdByModel: event.createdByModel, // "Admin" or "User"
       }));
       setEventCards(formattedEvents);
     } catch (error) {
@@ -637,10 +652,10 @@ const EventSection = () => {
         throw new Error(`API error: ${response.status}`);
       }
 
-      await fetchEvents(); // Refresh events after adding
+      await fetchEvents();
       setShowModal(false);
       setNewEvent({ eventName: "", dateofevent: "", ispublic: false, budget: 0, description: "" });
-      setError(null); // Clear error on success
+      setError(null);
     } catch (error) {
       console.error("Error adding event:", error);
       setError(error.message);
@@ -649,34 +664,34 @@ const EventSection = () => {
 
   const handleDeleteEvent = async (id) => {
     try {
-        const token = getToken();
-        if (!token) {
-            navigate("/login");
-            return;
-        }
+      const token = getToken();
+      if (!token) {
+        navigate("/login");
+        return;
+      }
 
-        const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
+      const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-        if (!response.ok) {
-            const errorData = await response.json(); // Get the error message from the server
-            if (response.status === 401) throw new Error("Unauthorized - Please log in");
-            if (response.status === 403) throw new Error("You don't have permission to delete this event");
-            throw new Error(`API error: ${response.status} - ${errorData.message || "Unknown error"}`);
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) throw new Error("Unauthorized - Please log in");
+        if (response.status === 403) throw new Error("You don't have permission to delete this event");
+        throw new Error(`API error: ${response.status} - ${errorData.message || "Unknown error"}`);
+      }
 
-        setEventCards((prev) => prev.filter((event) => event.id !== id));
-        setError(null);
+      setEventCards((prev) => prev.filter((event) => event.id !== id));
+      setError(null);
     } catch (error) {
-        console.error("Error deleting event:", error);
-        setError(error.message);
+      console.error("Error deleting event:", error);
+      setError(error.message);
     }
-};
+  };
 
   const handleEditEvent = (event) => {
     setEditingEvent({
@@ -719,10 +734,10 @@ const EventSection = () => {
         throw new Error(`API error: ${response.status}`);
       }
 
-      await fetchEvents(); // Refresh events after updating
+      await fetchEvents();
       setShowEditModal(false);
       setEditingEvent(null);
-      setError(null); // Clear error on success
+      setError(null);
     } catch (error) {
       console.error("Error updating event:", error);
       setError(error.message);
@@ -744,7 +759,9 @@ const EventSection = () => {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Events</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {userRole === "admin" ? "All Events" : "My Events"}
+          </h1>
           <button
             onClick={() => setShowModal(true)}
             className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
@@ -810,6 +827,11 @@ const EventSection = () => {
                     </div>
                     <div className="text-gray-600">Budget: ${card.budget}</div>
                     <div className="text-gray-600 truncate">{card.description}</div>
+                    {userRole === "admin" && (
+                      <div className="text-gray-500 text-sm">
+                        Created by: {card.createdByModel} (ID: {card.createdBy})
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -818,7 +840,6 @@ const EventSection = () => {
         </div>
       </div>
 
-      {/* Add Modal */}
       {showModal && (
         <Modal onClose={() => setShowModal(false)}>
           <h2 className="text-2xl font-semibold mb-6">Create New Event</h2>
@@ -894,7 +915,6 @@ const EventSection = () => {
         </Modal>
       )}
 
-      {/* Edit Modal */}
       {showEditModal && editingEvent && (
         <Modal onClose={() => setShowEditModal(false)}>
           <h2 className="text-2xl font-semibold mb-6">Edit Event</h2>

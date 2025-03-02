@@ -310,146 +310,173 @@
 // }
 
 
-
-import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
-import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
-import { PlusCircle } from "lucide-react"
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { PlusCircle } from "lucide-react";
 
 export default function Eventdetail() {
-  const { id } = useParams()
-  const [event, setEvent] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [newBudget, setNewBudget] = useState("")
+  const { id } = useParams();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [newBudget, setNewBudget] = useState("");
   const [newExpense, setNewExpense] = useState({
     description: "",
     amount: "",
     date: new Date().toISOString().split("T")[0],
-  })
-  const [isUpdating, setIsUpdating] = useState(false)
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    fetchEventDetails()
-  }, [id])
+    fetchEventDetails();
+  }, [id]);
 
   const fetchEventDetails = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      // Retrieve token from localStorage (or wherever you store it after login)
+      const token = localStorage.getItem("token"); // Adjust based on your auth system
+      if (!token) {
+        throw new Error("No authentication token found. Please log in.");
       }
-      const data = await response.json()
-      setEvent(data)
-      setNewBudget(data.budget)
+
+      const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // Include the JWT token
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) throw new Error("Unauthorized: Please log in again.");
+        if (response.status === 403) throw new Error("You don't have permission to view this event.");
+        if (response.status === 404) throw new Error("Event not found.");
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setEvent(data);
+      setNewBudget(data.budget || ""); // Ensure newBudget is set even if budget is 0
     } catch (err) {
-      setError("Failed to fetch event details")
-      console.error("Error fetching event details:", err)
+      setError(err.message || "Failed to fetch event details");
+      console.error("Error fetching event details:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const updateBudget = async () => {
     if (!newBudget || newBudget.trim() === "") {
-      alert("Please enter a valid budget amount.")
-      return
+      alert("Please enter a valid budget amount.");
+      return;
     }
-    setIsUpdating(true)
+    setIsUpdating(true);
     try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found.");
+
       const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...event,
           budget: Number.parseFloat(newBudget),
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      await fetchEventDetails()
+      await fetchEventDetails(); // Refresh event data
     } catch (err) {
-      setError("Failed to update budget")
-      console.error("Error updating budget:", err)
+      setError("Failed to update budget: " + err.message);
+      console.error("Error updating budget:", err);
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   const addExpense = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!newExpense.description || newExpense.description.trim() === "") {
-      alert("Please enter a valid expense description.")
-      return
+      alert("Please enter a valid expense description.");
+      return;
     }
     if (!newExpense.amount || newExpense.amount.trim() === "") {
-      alert("Please enter a valid expense amount.")
-      return
+      alert("Please enter a valid expense amount.");
+      return;
     }
     if (!newExpense.date) {
-      alert("Please select a valid date for the expense.")
-      return
+      alert("Please select a valid date for the expense.");
+      return;
     }
-    setIsUpdating(true)
+    setIsUpdating(true);
     try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No authentication token found.");
+
       const newExpenseData = {
         ...newExpense,
         amount: Number.parseFloat(newExpense.amount),
         date: new Date(newExpense.date).toISOString(),
-      }
+      };
 
-      const updatedExpenses = [...event.expenses, newExpenseData]
-      const updatedTotalSpent = event.totalSpent + newExpenseData.amount
+      const updatedExpenses = [...(event.expenses || []), newExpenseData];
+      const updatedTotalSpent = (event.totalSpent || 0) + newExpenseData.amount;
 
       const response = await fetch(`https://fin-ctrl-1.onrender.com/FinCtrl/event/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...event,
           expenses: updatedExpenses,
           totalSpent: updatedTotalSpent,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       setNewExpense({
         description: "",
         amount: "",
         date: new Date().toISOString().split("T")[0],
-      })
-      await fetchEventDetails()
+      });
+      await fetchEventDetails(); // Refresh event data
     } catch (err) {
-      setError("Failed to add expense")
-      console.error("Error adding expense:", err)
+      setError("Failed to add expense: " + err.message);
+      console.error("Error adding expense:", err);
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
-  if (loading) return <div className="text-center py-10">Loading...</div>
-  if (error) return <div className="text-red-500 text-center py-10">{error}</div>
+  if (loading) return <div className="text-center py-10">Loading...</div>;
+  if (error) return <div className="text-red-500 text-center py-10">{error}</div>;
+  if (!event) return <div className="text-center py-10">No event data available</div>;
 
-  const totalAmount = event.budget
-  const usedAmount = event.totalSpent
-  const balance = totalAmount - usedAmount
-  const percentage = (usedAmount / totalAmount) * 100
+  const totalAmount = event.budget || 0;
+  const usedAmount = event.totalSpent || 0;
+  const balance = totalAmount - usedAmount;
+  const percentage = totalAmount > 0 ? (usedAmount / totalAmount) * 100 : 0;
 
   const data = [
-    { name: "usedAmount", value: percentage, fill: "#000" },
+    { name: "usedAmount", value: 100-percentage, fill: "#000" },
     { name: "totalAmount", value: 100, fill: "#60a5fa" },
-  ]
+  ];
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -545,7 +572,6 @@ export default function Eventdetail() {
 
       {/* Chart & Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart Section */}
         <div className="bg-blue-100 text-black p-6 rounded-2xl shadow-lg">
           <div className="flex justify-between items-center">
             <div>
@@ -568,7 +594,6 @@ export default function Eventdetail() {
           </div>
         </div>
 
-        {/* Table Section */}
         <div className="lg:col-span-2">
           <div className="border rounded-lg">
             <div className="max-h-[400px] overflow-y-auto">
@@ -581,7 +606,7 @@ export default function Eventdetail() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {event.expenses.map((expense, index) => (
+                  {(event.expenses || []).map((expense, index) => (
                     <TableRow key={index}>
                       <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
                       <TableCell>{expense.description}</TableCell>
@@ -599,6 +624,5 @@ export default function Eventdetail() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
