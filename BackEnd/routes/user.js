@@ -151,58 +151,53 @@ const verifyToken = (req, res, next) => {
 // ✅ User Registration (Signup)
 router.post("/registration", async (req, res) => {
     try {
-      const { username, email, password, admin } = req.body;
-  
-      // Validate adminId
-      if (!mongoose.Types.ObjectId.isValid(admin)) {
-        return res.status(400).json({ message: "Invalid Admin ID" });
-      }
-  
-      // Check if admin exists
-      const adminUser = await Admin.findById(admin);
-      if (!adminUser) {
-        return res.status(404).json({ message: "Admin not found" });
-      }
-  
-      // Check if user already exists
-      let user = await User.findOne({ email });
-      if (user) {
-        return res.status(400).json({ message: "User already exists" });
-      }
-  
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-  
-      // Create new user
-      user = new User({
-        username,
-        email,
-        password: hashedPassword,
-        role: "user",
-        admin,
-      });
-  
-      await user.save();
-  
-      // ✅ Update Admin's managedUsers array
-      const isUserAlreadyManaged = adminUser.managedUsers.some((u) =>
-        u.userId.equals(user._id)
-      );
-  
-      if (!isUserAlreadyManaged) {
-        adminUser.managedUsers.push({ userId: user._id });
-        await adminUser.save();
-        console.log(`✅ User ${user.username} added to Admin: ${adminUser.adminName}`);
-      }
-  
-      res.status(201).json({ message: "User registered successfully", user });
+        const { name, email, password, adminId } = req.body;
+
+        // ✅ Validate adminId
+        if (!adminId) {
+            return res.status(400).json({ message: "Admin ID is required" });
+        }
+
+        // ✅ Check if the admin exists
+        const admin = await Admin.findById(adminId);
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        // ✅ Check if user already exists
+        let user = await User.findOne({ email });
+        if (user) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        // ✅ Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // ✅ Create new user
+        user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            admin: adminId, // Associate user with admin
+        });
+
+        await user.save();
+
+        // ✅ Correctly push to admin's managedUsers
+        if (admin) {
+            admin.managedUsers.push({ userId: newUser._id });
+            await admin.save(); // 👈 Make sure this is saving correctly!
+        }
+        
+        res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
-      console.error("Registration Error:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+        console.error(error);
+        res.status(500).json({ message: "Server error: " + error.message });
     }
-  });
-  
+});
+
+
 
 
 

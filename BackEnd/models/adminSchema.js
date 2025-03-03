@@ -60,63 +60,60 @@
 // module.exports = Admin;
 
 
+
+
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const Schema = mongoose.Schema;
 
-// Expense Schema
+// ✅ Expense Schema
 const ExpenseSchema = new Schema({
   date: { type: Date, required: true },
   description: { type: String, required: true },
   amount: { type: Number, required: true, min: 0 },
 });
 
-// Finance Plan Schema
+// ✅ Finance Plan Schema
 const FinancePlanSchema = new Schema({
   planName: { type: String, required: true },
   goalAmount: { type: Number, required: true, min: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 
-// Event Schema (Reference instead of Embedding)
+// ✅ Event Schema
 const EventSchema = new Schema({
   eventName: { type: String, required: true },
   budget: { type: Number, required: true, min: 0 },
   expenses: { type: [ExpenseSchema], default: [] },
   totalSpent: { type: Number, default: 0 },
-  remainingBudget: {
-    type: Number,
-    default: function () {
-      return this.budget;
-    },
-  },
+  remainingBudget: { type: Number, default: 0 }, // Remove function-based default
 });
 
-// Auto-update totalSpent and remainingBudget
+// 🔄 Auto-update `totalSpent` and `remainingBudget`
 EventSchema.pre("save", function (next) {
   this.totalSpent = this.expenses.reduce((sum, expense) => sum + expense.amount, 0);
   this.remainingBudget = this.budget - this.totalSpent;
   next();
 });
 
-// Managed Users Schema (Reference Instead of Embedded)
+// ✅ Managed Users Schema
 const ManagedUserSchema = new Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   financeData: [{ type: mongoose.Schema.Types.ObjectId, ref: "FinancePlan" }],
   events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
 });
 
-// Admin Schema
+// ✅ Admin Schema
 const AdminSchema = new Schema(
   {
     adminName: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true }, // Encrypted password
-    role: { type: String, enum: ["admin"], default: "admin" }, // Added role field for consistency
+    role: { type: String, enum: ["admin"], default: "admin" },
     managedUsers: { type: [ManagedUserSchema], default: [] },
-    events: [{ type: [EventSchema], ref: "Event" }], // Store event references
+    events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event", default: [] }]
   },
   { timestamps: true }
 );
@@ -141,7 +138,13 @@ AdminSchema.methods.generateAuthToken = function () {
   });
 };
 
-// Indexes for fast queries
+// ✅ Method to Add a Managed User (Recommended for Better Data Integrity)
+AdminSchema.methods.addManagedUser = async function (userId) {
+  this.managedUsers.push({ userId });
+  await this.save();
+};
+
+// 📌 Indexes for faster queries
 AdminSchema.index({ email: 1 });
 ManagedUserSchema.index({ userId: 1 });
 
