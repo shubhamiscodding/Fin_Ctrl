@@ -151,7 +151,7 @@ const verifyToken = (req, res, next) => {
 // ✅ User Registration (Signup)
 router.post("/registration", async (req, res) => {
     try {
-        const { name, email, password, adminId } = req.body;
+        const { username, email, password, adminId } = req.body;
 
         // ✅ Validate adminId
         if (!adminId) {
@@ -176,7 +176,7 @@ router.post("/registration", async (req, res) => {
 
         // ✅ Create new user
         user = new User({
-            name,
+            username, // 🔹 Changed from `name` to `username`
             email,
             password: hashedPassword,
             admin: adminId, // Associate user with admin
@@ -184,18 +184,17 @@ router.post("/registration", async (req, res) => {
 
         await user.save();
 
-        // ✅ Correctly push to admin's managedUsers
-        if (admin) {
-            admin.managedUsers.push({ userId: newUser._id });
-            await admin.save(); // 👈 Make sure this is saving correctly!
-        }
-        
+        // ✅ Push user to admin's managedUsers
+        admin.managedUsers.push({ userId: user._id }); // 🔹 Fixed variable name
+        await admin.save();
+
         res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server error: " + error.message });
     }
 });
+
 
 
 
