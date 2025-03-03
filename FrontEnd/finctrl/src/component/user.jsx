@@ -56,8 +56,8 @@ const User = ({ isSidebarOpen }) => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="font-medium">{user.username}</h3>
-                                    <p className="text-sm text-gray-500">{user.email}</p>
+                                    <h3 className="font-medium">{user.userId.username}</h3>
+                                    <p className="text-sm text-gray-500">{user.userId.email}</p>
                                 </div>
                             </div>
                         ))
@@ -82,16 +82,15 @@ const User = ({ isSidebarOpen }) => {
                         <div className="space-y-3">
                             <div>
                                 <span className="text-sm font-semibold">Name: </span>
-                                <span>{selectedUser.username}</span>
+                                <span>{selectedUser.userId.username}</span>
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">Email: </span>
-                                <span>{selectedUser.email}</span>
+                                <span>{selectedUser.userId.email}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">Date:  </span>
-                                <span>{new Date(selectedUser.createdAt).toISOString().split('T')[0]}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
 

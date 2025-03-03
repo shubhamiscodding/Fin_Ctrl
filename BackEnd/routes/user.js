@@ -190,7 +190,7 @@ router.post("/registration", async (req, res) => {
 
         // ✅ Push user to admin's managedUsers
         admin.managedUsers.push({ userId: user._id });
-        await admin.save();
+        // await admin.save();
         console.log(`[${requestId}] Admin updated:`, admin.managedUsers);
 
         res.status(201).json({ message: "User registered successfully", user });
