@@ -151,6 +151,9 @@ const verifyToken = (req, res, next) => {
 // ✅ User Registration (Signup)
 router.post("/registration", async (req, res) => {
     try {
+        const requestId = Math.random().toString(36).substring(7); // Random ID for each request
+        console.log(`[${requestId}] Registration request received:`, req.body);
+
         const { username, email, password, adminId } = req.body;
 
         // ✅ Validate adminId
@@ -176,17 +179,19 @@ router.post("/registration", async (req, res) => {
 
         // ✅ Create new user
         user = new User({
-            username, // 🔹 Changed from `name` to `username`
+            username,
             email,
             password: hashedPassword,
-            admin: adminId, // Associate user with admin
+            admin: adminId,
         });
 
         await user.save();
+        console.log(`[${requestId}] User saved:`, user._id);
 
         // ✅ Push user to admin's managedUsers
-        admin.managedUsers.push({ userId: user._id }); // 🔹 Fixed variable name
+        admin.managedUsers.push({ userId: user._id });
         await admin.save();
+        console.log(`[${requestId}] Admin updated:`, admin.managedUsers);
 
         res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
@@ -194,10 +199,6 @@ router.post("/registration", async (req, res) => {
         res.status(500).json({ message: "Server error: " + error.message });
     }
 });
-
-
-
-
 
 
 // ✅ User Login

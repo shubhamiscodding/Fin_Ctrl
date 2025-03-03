@@ -3,12 +3,12 @@ import { LoadingIcon } from "../components/ui/loading-icon";
 
 const User = ({ isSidebarOpen }) => {
     const [users, setUsers] = useState([]);
-    const [selectedUser, setSelectedUser] = useState(null); // Track selected user
+    const [selectedUser, setSelectedUser] = useState(null);
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const token = localStorage.getItem("token"); // Get JWT token
+                const token = localStorage.getItem("token");
                 if (!token) {
                     console.error("No token found, please log in.");
                     return;
@@ -28,7 +28,7 @@ const User = ({ isSidebarOpen }) => {
                 }
 
                 const data = await response.json();
-                setUsers(data); // Set user data
+                setUsers(data);
                 console.log("Users fetched:", data);
             } catch (error) {
                 console.error("Error fetching users:", error);
@@ -56,8 +56,8 @@ const User = ({ isSidebarOpen }) => {
                                     </svg>
                                 </div>
                                 <div>
-                                    <h3 className="font-medium">{user.userId.username}</h3>
-                                    <p className="text-sm text-gray-500">{user.userId.email}</p>
+                                    <h3 className="font-medium">{user.username}</h3>
+                                    <p className="text-sm text-gray-500">{user.email}</p>
                                 </div>
                             </div>
                         ))
@@ -82,23 +82,22 @@ const User = ({ isSidebarOpen }) => {
                         <div className="space-y-3">
                             <div>
                                 <span className="text-sm font-semibold">Name: </span>
-                                <span>{selectedUser.userId.username}</span>
+                                <span>{selectedUser.username}</span>
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">Email: </span>
-                                <span>{selectedUser.userId.email}</span>
+                                <span>{selectedUser.email}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
                             <div>
                                 <span className="text-sm font-semibold">Date:  </span>
-                                <span>{new Date(selectedUser.userId.createdAt).toISOString().split('T')[0]}</span>
+                                <span>{new Date(selectedUser.createdAt).toISOString().split('T')[0]}</span>
                                 <div className="border-b border-gray-300 mt-1"></div>
                             </div>
 
                             <div className="space-y-2 pt-2">
                                 <button className="w-full py-2 px-4 bg-gray-100 text-gray-800 rounded">See More</button>
                                 <button className="w-full py-2 px-4 bg-red-500 text-white rounded">Delete User</button>
-                                {/* <button className="w-full py-2 px-4 bg-orange-400 text-white rounded">Give Admin Power</button> */}
                             </div>
                         </div>
                     </>
