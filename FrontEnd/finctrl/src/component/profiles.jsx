@@ -41,15 +41,28 @@ const Profiles = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event?ispublic=true");
-        
+  
+        const token = localStorage.getItem("token"); // Retrieve stored JWT token
+  
+        const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event?ispublic=true", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Add JWT token
+          },
+        });
+  
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+  
         const data = await response.json();
-        const publicEvents = data.filter(event => event.ispublic);
-        setEvents(publicEvents);
+  
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid response format");
+        }
+  
+        setEvents(data);
       } catch (error) {
         console.error("Error fetching events:", error);
         setError("Failed to load events. Please try again later.");
@@ -57,9 +70,11 @@ const Profiles = () => {
         setLoading(false);
       }
     };
-
+  
     fetchEvents();
   }, []);
+  
+  
 
   if (error) {
     return (

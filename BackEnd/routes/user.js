@@ -149,56 +149,60 @@ const verifyToken = (req, res, next) => {
 };
 
 // ✅ User Registration (Signup)
+// ✅ User Registration (Signup)
 router.post("/registration", async (req, res) => {
     try {
-      const { name, email, password, adminId } = req.body;
-  
-      // Validate adminId
-      if (!adminId) {
-        return res.status(400).json({ message: "Admin ID is required" });
-      }
-  
-      // Check if the admin exists
-      const admin = await Admin.findById(adminId);
-      if (!admin) {
-        return res.status(404).json({ message: "Admin not found" });
-      }
-  
-      // Check if user already exists
-      let user = await User.findOne({ email });
-      if (user) {
-        return res.status(400).json({ message: "User already exists" });
-      }
-  
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-  
-      // Create new user
-      user = new User({
-        name,
-        email,
-        password: hashedPassword,
-        adminId, // Associate with admin
-      });
-  
-      await user.save();
-  
-      // Update Admin's managedUsers array
-      await Admin.findByIdAndUpdate(
-        adminId,
-        {
-          $push: { managedUsers: { userId: user._id } },
-        },
-        { new: true }
-      );
-  
-      res.status(201).json({ message: "User registered successfully", user });
+        const { username, email, password, admin } = req.body; // Use `admin` to match User schema
+
+        // Validate admin ID
+        if (!admin) {
+            return res.status(400).json({ message: "Admin ID is required" });
+        }
+
+        // Check if the admin exists
+        const adminData = await Admin.findById(admin);
+        if (!adminData) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+
+        // Check if user already exists
+        let user = await User.findOne({ email });
+        if (user) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create new user
+        user = new User({
+            username,
+            email,
+            password: hashedPassword,
+            role: "user",
+            admin, // Associate with admin
+        });
+
+        await user.save();
+
+        // ✅ Update Admin's managedUsers array only if user isn't already added
+        const isUserAlreadyManaged = adminData.managedUsers.some((managedUser) =>
+            managedUser.userId.equals(user._id)
+        );
+
+        if (!isUserAlreadyManaged) {
+            adminData.managedUsers.push({ userId: user._id });
+            await adminData.save();
+        }
+
+        res.status(201).json({ message: "User registered successfully", user });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Server error" });
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
     }
-  });
+});
+
 
 
 // ✅ User Login
