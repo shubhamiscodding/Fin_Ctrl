@@ -134,14 +134,17 @@ router.get("/events", verifyToken, async (req, res) => {
 router.get("/profile", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
+    const role = req.user.role;
 
-    if (req.user.role === "admin") {
-      return res.status(403).json({ message: "Admins should use admin routes" });
+    let user;
+    if (role === "admin") {
+      user = await Admin.findById(userId).select("-password -passForUser"); // Exclude sensitive fields for admin
+    } else {
+      user = await User.findById(userId).select("-password"); // Exclude password for user
     }
 
-    const user = await User.findById(userId).select("-password"); // Exclude password
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Profile not found" });
     }
 
     res.status(200).json(user);
@@ -154,23 +157,33 @@ router.get("/profile", verifyToken, async (req, res) => {
 router.put("/profile", verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { username, email } = req.body;
+    const role = req.user.role;
+    const { username, email, picture, adminName } = req.body;
 
-    if (req.user.role === "admin") {
-      return res.status(403).json({ message: "Admins should use admin routes" });
+    let user;
+    if (role === "admin") {
+      user = await Admin.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+      // Update admin-specific fields
+      if (adminName) user.adminName = adminName;
+      if (email) user.email = email;
+      if (picture) user.picture = picture;
+    } else {
+      user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      // Update user-specific fields
+      if (username) user.username = username;
+      if (email) user.email = email;
+      if (picture) user.picture = picture;
     }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Update fields if provided
-    if (username) user.username = username;
-    if (email) user.email = email;
 
     await user.save();
-    res.status(200).json({ message: "Profile updated successfully", user });
+    const updatedUser = await (role === "admin" ? Admin : User).findById(userId).select("-password"); // Return updated user without password
+    res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
     res.status(500).json({ message: "Server error: " + error.message });
   }

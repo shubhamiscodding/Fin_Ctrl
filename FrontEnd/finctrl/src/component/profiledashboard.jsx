@@ -1,119 +1,233 @@
-import React from 'react';
-import { 
-  UserCircle, 
-  Wallet, 
-  PieChart, 
-  Share2, 
-  Lock, 
-  Calendar,
-  TrendingUp,
-  Settings,
-  Eye,
-  EyeOff,
-  Shield
-} from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Camera, Save, ArrowLeft } from "lucide-react";
+import { LoadingIcon } from "../components/ui/loading-icon";
 
-function ProfileDashboard({ profilePic }) {
-  // This would come from your auth system
-  const mockUser = {
-    name: "Sarah Johnson",
-    email: "sarah.j@example.com",
-    role: "user",
-    joinDate: "January 2024",
-    profileImage: "",
-    isPublic: true,
-    stats: {
-      totalSavings: 45000,
-      monthlyBudget: 3000,
-      activeEvents: 2,
-      investmentReturn: 12.5
+const ProfileDashboard = () => {
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    picture: null,
+  });
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Please log in to view your profile.");
+
+      const response = await fetch("https://fin-ctrl-1.onrender.com/users/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) throw new Error("Unauthorized: Please log in again.");
+        if (response.status === 404) throw new Error("Profile not found.");
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUser(data);
+      setFormData({
+        username: data.username || "",
+        email: data.email || "",
+        picture: data.picture || null,
+      });
+      setPreview(data.picture || null);
+      localStorage.setItem("user", JSON.stringify(data)); // Update localStorage
+      if (data.picture) localStorage.setItem("userPic", data.picture);
+    } catch (error) {
+      setError(error.message || "Failed to load profile.");
+      console.error("Error fetching profile:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Profile Header */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div className="flex items-start gap-6">
-            <img
-              src={mockUser.profileImage}
-              alt="Profile"
-              className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-            />
-            <div className="flex-1">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    {mockUser.name}
-                    {mockUser.role === "admin" && (
-                      <Shield className="h-5 w-5 text-indigo-600" />
-                    )}
-                  </h2>
-                  <p className="text-gray-500">{mockUser.email}</p>
-                  <p className="text-sm text-gray-400">Member since {mockUser.joinDate}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    {mockUser.isPublic ? (
-                      <><Eye className="h-4 w-4 mr-2" /> Public</>
-                    ) : (
-                      <><EyeOff className="h-4 w-4 mr-2" /> Private</>
-                    )}
-                  </button>
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                    <Share2 className="h-4 w-4 mr-2" /> Share Profile
-                  </button>
-                </div>
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+        setFormData((prev) => ({ ...prev, picture: reader.result })); // Store base64 string
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Please log in to update your profile.");
+
+      const response = await fetch("https://fin-ctrl-1.onrender.com/users/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          picture: formData.picture, // Base64 string
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) throw new Error("Unauthorized: Please log in again.");
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser.user);
+      localStorage.setItem("user", JSON.stringify(updatedUser.user));
+      if (formData.picture) localStorage.setItem("userPic", formData.picture);
+      alert("Profile updated successfully!");
+    } catch (error) {
+      setError(error.message || "Failed to update profile.");
+      console.error("Error updating profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <LoadingIcon size={58} color="border-l-indigo-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-red-500 text-center">
+          <p className="text-xl mb-4">😕</p>
+          <p>{error}</p>
+          <button
+            onClick={fetchProfile}
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Profile Settings</h1>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+          >
+            <ArrowLeft size={20} />
+            Back to Dashboard
+          </button>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <img
+                  src={preview || "https://via.placeholder.com/150"}
+                  alt="Profile"
+                  className="w-32 h-32 rounded-full object-cover"
+                />
+                <label
+                  htmlFor="profile-pic"
+                  className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700"
+                >
+                  <Camera size={20} />
+                  <input
+                    id="profile-pic"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold">{formData.username}</h2>
+                <p className="text-gray-500">{formData.email}</p>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-44 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Total Savings</h3>
-              <Wallet className="h-5 w-5 text-indigo-600" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Your username"
+                required
+              />
             </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">${mockUser.stats.totalSavings.toLocaleString()}</p>
-            <p className="text-sm text-gray-500 mt-1">+2.5% from last month</p>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Active Events</h3>
-              <Calendar className="h-5 w-5 text-indigo-600" />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="you@example.com"
+                required
+              />
             </div>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{mockUser.stats.activeEvents}</p>
-            <p className="text-sm text-gray-500 mt-1">Wedding, Vacation</p>
-          </div>
-        </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Calendar className="h-5 w-5 text-indigo-600" />
-              <span className="font-medium">Add New Event</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <PieChart className="h-5 w-5 text-indigo-600" />
-              <span className="font-medium">Update Budget</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Lock className="h-5 w-5 text-indigo-600" />
-              <span className="font-medium">Privacy Settings</span>
-            </button>
-          </div>
+            {error && <p className="text-red-500">{error}</p>}
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                <Save size={20} />
+                {loading ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
         </div>
-      </main>
+      </div>
     </div>
   );
-}
+};
 
 export default ProfileDashboard;
