@@ -3,7 +3,7 @@ import { Eye } from "lucide-react";
 import { LoadingIcon } from "../components/ui/loading-icon";
 import { Link } from "react-router-dom";
 
-const EventCard = ({ eventName, dateofevent, description, ispublic, _id }) => {
+const EventCard = ({ eventName, dateofevent, description, _id }) => {
   return (
     <div className="border rounded-lg p-4 w-72 shadow-sm hover:shadow-md transition-shadow duration-200 h-70">
       <div className="flex justify-between items-center mb-6">
@@ -23,9 +23,7 @@ const EventCard = ({ eventName, dateofevent, description, ispublic, _id }) => {
 
       <div className="absolute mt-6 -ml-3">
         <Link to={`/event/${_id}`}>
-          <button
-            className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-2"
-          >
+          <button className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-2">
             View Event Details
           </button>
         </Link>
@@ -66,11 +64,14 @@ const Profiles = () => {
         }
 
         const data = await response.json();
-        if (!Array.isArray(data)) {
-          throw new Error("Invalid response format");
+
+        // Handle both array and paginated object responses
+        const eventList = Array.isArray(data) ? data : data.events || [];
+        if (!Array.isArray(eventList)) {
+          throw new Error("Invalid response format: Expected an array of events");
         }
 
-        setEvents(data);
+        setEvents(eventList);
       } catch (error) {
         console.error("Error fetching events:", error);
         setError(error.message || "Failed to load events. Please try again later.");
