@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, UserPlus, Key, Shield } from "lucide-react";
 
 const registerUser = async (userData, role) => {
   const endpoint =
     role === "admin"
-      ? "https://fin-ctrl-1.onrender.com/FinCtrl/admin/register"
-      : "https://fin-ctrl-1.onrender.com/FinCtrl/user/register";
+      ? "https://fin-ctrl-1.onrender.com/admin/register"
+      : "https://fin-ctrl-1.onrender.com/users/registration";
 
   try {
     const response = await fetch(endpoint, {
@@ -83,10 +83,24 @@ const Signup = () => {
     setIsLoading(true);
     setError("");
     
+    // Prepare payload based on role
+    const payload = formData.role === "admin"
+      ? {
+          adminName: formData.adminName,
+          email: formData.email,
+          password: formData.password,
+          passForUser: formData.passForUser,
+        }
+      : {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          adminId: formData.admin, // Changed from "admin" to "adminId" to match backend
+        };
+
     try {
-      const data = await registerUser(formData, formData.role);
+      const data = await registerUser(payload, formData.role);
       if (data) {
-        // Trigger exit animation before navigating
         setPageAnimation("fade-out");
         setTimeout(() => navigate("/login"), 400);
       }
@@ -105,15 +119,12 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 p-4">
       <div className={`w-full max-w-md ${pageAnimation}`}>
-        {/* Card with subtle shadow and rounded corners */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Header Section */}
           <div className="bg-gradient-to-r from-indigo-600 to-blue-700 p-8 text-center">
             <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
             <p className="text-indigo-100">Join us and get started today</p>
           </div>
           
-          {/* Form Section */}
           <div className="p-8">
             {error && (
               <div className="mb-6 bg-red-50 text-red-700 p-3 rounded-lg text-sm flex items-center">
@@ -125,7 +136,6 @@ const Signup = () => {
             )}
             
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Role Selection */}
               <div className="space-y-2">
                 <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                   I want to register as
@@ -133,7 +143,7 @@ const Signup = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => setFormData({...formData, role: "user"})}
+                    onClick={() => setFormData({ ...formData, role: "user" })}
                     className={`flex items-center justify-center p-3 border rounded-lg transition-all duration-200 ${
                       formData.role === "user" 
                         ? "bg-indigo-50 border-indigo-500 text-indigo-700" 
@@ -145,7 +155,7 @@ const Signup = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData({...formData, role: "admin"})}
+                    onClick={() => setFormData({ ...formData, role: "admin" })}
                     className={`flex items-center justify-center p-3 border rounded-lg transition-all duration-200 ${
                       formData.role === "admin" 
                         ? "bg-indigo-50 border-indigo-500 text-indigo-700" 
@@ -158,10 +168,8 @@ const Signup = () => {
                 </div>
               </div>
               
-              {/* Dynamic Fields Based on Role */}
               {formData.role === "user" ? (
                 <>
-                  {/* Username Field */}
                   <div className="space-y-2">
                     <label htmlFor="username" className="block text-sm font-medium text-gray-700">
                       Username
@@ -175,6 +183,7 @@ const Signup = () => {
                         type="text"
                         name="username"
                         placeholder="Your username"
+                        value={formData.username}
                         onChange={handleChange}
                         required
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
@@ -182,7 +191,6 @@ const Signup = () => {
                     </div>
                   </div>
                   
-                  {/* Admin ID Field */}
                   <div className="space-y-2">
                     <label htmlFor="admin" className="block text-sm font-medium text-gray-700">
                       Admin ID
@@ -196,6 +204,7 @@ const Signup = () => {
                         type="text"
                         name="admin"
                         placeholder="Admin ID provided to you"
+                        value={formData.admin}
                         onChange={handleChange}
                         required
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
@@ -205,7 +214,6 @@ const Signup = () => {
                 </>
               ) : (
                 <>
-                  {/* Admin Name Field */}
                   <div className="space-y-2">
                     <label htmlFor="adminName" className="block text-sm font-medium text-gray-700">
                       Admin Name
@@ -219,6 +227,7 @@ const Signup = () => {
                         type="text"
                         name="adminName"
                         placeholder="Your admin name"
+                        value={formData.adminName}
                         onChange={handleChange}
                         required
                         className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
@@ -226,7 +235,6 @@ const Signup = () => {
                     </div>
                   </div>
                   
-                  {/* Pass for Users Field */}
                   <div className="space-y-2">
                     <label htmlFor="passForUser" className="block text-sm font-medium text-gray-700">
                       Pass for Users
@@ -240,6 +248,7 @@ const Signup = () => {
                         type={showPassForUser ? "text" : "password"}
                         name="passForUser"
                         placeholder="Create a pass for your users"
+                        value={formData.passForUser}
                         onChange={handleChange}
                         required
                         className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
@@ -260,7 +269,6 @@ const Signup = () => {
                 </>
               )}
               
-              {/* Email Field - Common for both roles */}
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email Address
@@ -274,6 +282,7 @@ const Signup = () => {
                     type="email"
                     name="email"
                     placeholder="you@example.com"
+                    value={formData.email}
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
@@ -281,7 +290,6 @@ const Signup = () => {
                 </div>
               </div>
               
-              {/* Password Field - Common for both roles */}
               <div className="space-y-2">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
@@ -295,6 +303,7 @@ const Signup = () => {
                     type={showPassword ? "text" : "password"}
                     name="password"
                     placeholder="••••••••"
+                    value={formData.password}
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
@@ -313,7 +322,6 @@ const Signup = () => {
                 </div>
               </div>
               
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -335,7 +343,6 @@ const Signup = () => {
             </form>
           </div>
           
-          {/* Footer Section */}
           <div className="px-8 py-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between">
             <p className="text-sm text-gray-600 mb-4 sm:mb-0">
               Already have an account?

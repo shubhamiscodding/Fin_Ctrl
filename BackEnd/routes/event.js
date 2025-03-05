@@ -87,17 +87,28 @@ router.get("/", verifyToken, async (req, res) => {
 // GET all public events (Authenticated users only)
 router.get("/public", verifyToken, async (req, res) => {
   try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
     const publicEvents = await Event.find({ ispublic: true })
-      .sort({ dateofevent: -1 }) // Sort by date descending
-      .select("-createdBy -createdByModel"); // Optionally exclude creator info
+      .sort({ dateofevent: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .select("-createdBy -createdByModel");
+
+    const total = await Event.countDocuments({ ispublic: true });
 
     if (publicEvents.length === 0) {
       return res.status(404).json({ message: "No public events found" });
     }
 
-    res.status(200).json(publicEvents);
+    res.status(200).json({
+      events: publicEvents,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+    });
   } catch (err) {
-    console.error("Error fetching public events:", err.stack);
     res.status(500).json({ message: "Error fetching public events: " + err.message });
   }
 });
@@ -191,6 +202,39 @@ router.delete("/:id", verifyToken, async (req, res) => {
   } catch (err) {
     console.error("Error deleting event:", err.stack);
     res.status(500).json({ message: "Error deleting event: " + err.message });
+  }
+});
+
+
+// to update the expenses of an event
+router.post("/:id/expenses", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, description, amount, category } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid Event ID" });
+    }
+
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (req.user.role !== "admin" && event.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized to add expenses to this event" });
+    }
+
+    if (!date || !description || !amount || !category) {
+      return res.status(400).json({ message: "Date, description, amount, and category are required" });
+    }
+
+    event.expenses.push({ date, description, amount: Number(amount), category });
+    await event.save();
+
+    res.status(200).json({ message: "Expense added successfully", event });
+  } catch (error) {
+    res.status(500).json({ message: "Server error: " + error.message });
   }
 });
 

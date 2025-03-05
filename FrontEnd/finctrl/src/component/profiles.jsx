@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Eye } from "lucide-react";
 import { LoadingIcon } from "../components/ui/loading-icon";
+import { Link } from "react-router-dom";
 
-const EventCard = ({ eventName, dateofevent, description, ispublic }) => {
+const EventCard = ({ eventName, dateofevent, description, ispublic, _id }) => {
   return (
     <div className="border rounded-lg p-4 w-72 shadow-sm hover:shadow-md transition-shadow duration-200 h-70">
       <div className="flex justify-between items-center mb-6">
@@ -11,21 +12,23 @@ const EventCard = ({ eventName, dateofevent, description, ispublic }) => {
       </div>
 
       <div className="text-xl font-bold mb-10 -mt-3">
-        {new Date(dateofevent).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
+        {new Date(dateofevent).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         })}
       </div>
 
       <div className="text-sm text-gray-500 line-clamp-3">{description}</div>
 
       <div className="absolute mt-6 -ml-3">
-        <button 
-          className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-2"
-        >
-          View Event Details
-        </button>
+        <Link to={`/event/${_id}`}>
+          <button
+            className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-2"
+          >
+            View Event Details
+          </button>
+        </Link>
       </div>
     </div>
   );
@@ -41,40 +44,43 @@ const Profiles = () => {
       try {
         setLoading(true);
         setError(null);
-  
-        const token = localStorage.getItem("token"); // Retrieve stored JWT token
-  
-        const response = await fetch("https://fin-ctrl-1.onrender.com/FinCtrl/event?ispublic=true", {
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Please log in to view public events.");
+        }
+
+        const response = await fetch("https://fin-ctrl-1.onrender.com/events/public", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Add JWT token
+            Authorization: `Bearer ${token}`,
           },
         });
-  
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorData = await response.json();
+          if (response.status === 401) throw new Error("Unauthorized: Please log in again.");
+          if (response.status === 404) throw new Error("No public events found.");
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
         }
-  
+
         const data = await response.json();
-  
         if (!Array.isArray(data)) {
           throw new Error("Invalid response format");
         }
-  
+
         setEvents(data);
       } catch (error) {
         console.error("Error fetching events:", error);
-        setError("Failed to load events. Please try again later.");
+        setError(error.message || "Failed to load events. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchEvents();
   }, []);
-  
-  
 
   if (error) {
     return (
@@ -82,7 +88,7 @@ const Profiles = () => {
         <div className="text-red-500 text-center">
           <p className="text-xl mb-4">😕</p>
           <p>{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
           >
@@ -96,18 +102,15 @@ const Profiles = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">Public Events</h1>
-      
+
       <div className="justify-evenly flex flex-wrap gap-6 max-w-7xl mx-auto">
         {loading ? (
           <div className="col-span-full flex justify-center items-center h-64">
             <LoadingIcon size={58} color="border-l-indigo-500" />
           </div>
         ) : events.length > 0 ? (
-          events.map(event => (
-            <EventCard
-              key={event._id}
-              {...event}
-            />
+          events.map((event) => (
+            <EventCard key={event._id} {...event} />
           ))
         ) : (
           <div className="text-center text-gray-500 w-full py-12">
