@@ -1,192 +1,10 @@
-// import { useEffect, useRef } from "react";
-// import "./login.css";
-// import { Link } from "react-router-dom";
-
-// export default function Login() {
-//     const containerRef = useRef(null);
-//     const overlayBtnRef = useRef(null);
-
-//     useEffect(() => {
-//         const container = containerRef.current;
-//         const overlayBtn = overlayBtnRef.current;
-
-//         const togglePanel = () => {
-//             container.classList.toggle("right-panel-active");
-
-//             // Remove the scaling effect and re-trigger the animation
-//             overlayBtn.classList.remove("btnScaled");
-//             window.requestAnimationFrame(() => {
-//                 overlayBtn.classList.add("btnScaled");
-//             });
-//         };
-
-//         overlayBtn.addEventListener("click", togglePanel);
-
-//         return () => {
-//             overlayBtn.removeEventListener("click", togglePanel);
-//         };
-//     }, []);
-
-//     return (
-//         <>
-//             <div className="container" id="container" ref={containerRef}>
-//                 <div className="form-container sign-up-container">
-//                     <form onSubmit={(e) => e.preventDefault()}>
-//                         <h1>Create Account</h1>
-//                         <div className="social-container">
-//                             <button className="social" onClick={() => console.log("Facebook icon clicked!")}>
-//                                 <i className="fab fa-facebook-f"></i>
-//                             </button>
-//                             <button className="social" onClick={() => console.log("Google icon clicked!")}>
-//                                 <i className="fab fa-google"></i>
-//                             </button>
-//                             <button className="social" onClick={() => console.log("LinkedIn icon clicked!")}>
-//                                 <i className="fab fa-linkedin-in"></i>
-//                             </button>
-//                         </div>
-//                         <span>or use your email for registration</span>
-//                         <div className="infield">
-//                             <input type="text" placeholder="Name" />
-//                             <label></label>
-//                         </div>
-//                         <div className="infield">
-//                             <input type="email" placeholder="Email" name="email" />
-//                             <label></label>
-//                         </div>
-//                         <div className="infield">
-//                             <input type="password" placeholder="Password" />
-//                             <label></label>
-//                         </div>
-//                         <button type="submit">Sign Up</button>
-//                     </form>
-//                 </div>
-
-//                 <div className="form-container sign-in-container">
-//                     <form onSubmit={(e) => e.preventDefault()}>
-//                         <h1>Sign in</h1>
-//                         <div className="social-container">
-//                             <button className="social" onClick={() => console.log("Facebook icon clicked!")}>
-//                                 <i className="fab fa-facebook-f"></i>
-//                             </button>
-//                             <button className="social" onClick={() => console.log("Google icon clicked!")}>
-//                                 <i className="fab fa-google"></i>
-//                             </button>
-//                             <button className="social" onClick={() => console.log("LinkedIn icon clicked!")}>
-//                                 <i className="fab fa-linkedin-in"></i>
-//                             </button>
-//                         </div>
-//                         <span>or use your account</span>
-//                         <div className="infield">
-//                             <input type="email" placeholder="Email" name="email" />
-//                             <label></label>
-//                         </div>
-//                         <div className="infield">
-//                             <input type="password" placeholder="Password" />
-//                             <label></label>
-//                         </div>
-//                         <a href="#" className="forgot">Forgot your password?</a>
-//                         <button type="submit">Sign In</button>
-//                     </form>
-//                 </div>
-
-//                 <div className="overlay-container" id="overlayCon">
-//                     <div className="overlay">
-//                         <div className="overlay-panel overlay-left">
-//                             <h1>Welcome Back!</h1>
-//                             <p>To keep connected with us please login with your personal info</p>
-//                             <button onClick={() => document.getElementById("container").classList.remove("right-panel-active")}>
-//                                 Sign In
-//                             </button>
-//                         </div>
-//                         <div className="overlay-panel overlay-right">
-//                             <h1>Hello, Friend!</h1>
-//                             <p>Enter your personal details and start your journey with us</p>
-//                             <button onClick={() => document.getElementById("container").classList.add("right-panel-active")}>
-//                                 Sign Up
-//                             </button>
-//                         </div>
-//                     </div>
-//                     <button id="overlayBtn" ref={overlayBtnRef}></button>
-//                 </div>
-//             </div>
-
-//             <footer></footer>
-//         </>
-//     );
-// }
-
-
-// import { useAuth0 } from "@auth0/auth0-react";
-// import { useEffect, useState } from "react";
-
-// const Login = () => {
-//   const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
-//   const [backendToken, setBackendToken] = useState(null);
-
-//   useEffect(() => {
-//     const authenticateWithBackend = async () => {
-//       if (isAuthenticated && user) {
-//         try {
-//           const email = user.email;
-
-//           // 🔹 Determine role (assuming frontend sets this)
-//           const role = email.includes("admin") ? "admin" : "user";
-
-//           // 🔹 Send login request to backend using Fetch API
-//           const response = await fetch("http://localhost:3000/api/user/login", {
-//             method: "POST",
-//             headers: {
-//               "Content-Type": "application/json",
-//             },
-//             body: JSON.stringify({ email, role }),
-//           });
-
-//           if (!response.ok) {
-//             throw new Error(`Login failed: ${response.statusText}`);
-//           }
-
-//           const data = await response.json();
-//           setBackendToken(data.token);
-
-//           console.log("Logged in successfully:", data);
-//         } catch (error) {
-//           console.error("Login failed:", error.message);
-//         }
-//       }
-//     };
-
-//     authenticateWithBackend();
-//   }, [isAuthenticated, user]);
-
-//   return (
-//     <div>
-//       {isAuthenticated ? (
-//         <>
-//           <h2>Welcome, {user.name}</h2>
-//           <button onClick={() => logout({ returnTo: window.location.origin })}>Logout</button>
-//         </>
-//       ) : (
-//         <button onClick={() => loginWithRedirect()}>Login</button>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Login;
-
-
-
-
-
-
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 
 const loginUser = async (email, password, role) => {
   try {
-    const endpoint = "http://localhost:3000/FinCtrl/user/login";
+    const endpoint = "https://fin-ctrl-1.onrender.com/users/login";
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -198,6 +16,7 @@ const loginUser = async (email, password, role) => {
     if (!response.ok) throw new Error(data.message || "Login failed");
 
     localStorage.setItem("token", data.token); // Store JWT
+    localStorage.setItem("role", data.role);  // Store role for dashboard routing (optional)
     console.log("Login successful:", data);
     return data;
   } catch (error) {
@@ -222,7 +41,10 @@ const Login = () => {
     
     try {
       const data = await loginUser(formData.email, formData.password, formData.role);
-      if (data) navigate("/dashboard");
+      if (data) {
+        // Navigate based on role (optional enhancement)
+        navigate(formData.role === "admin" ? "/admin-dashboard" : "/dashboard");
+      }
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");
     } finally {
@@ -233,15 +55,12 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-100 p-4">
       <div className="w-full max-w-md">
-        {/* Card with subtle shadow and rounded corners */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Header Section */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center">
             <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
             <p className="text-blue-100">Sign in to continue to your account</p>
           </div>
           
-          {/* Form Section */}
           <div className="p-8">
             {error && (
               <div className="mb-6 bg-red-50 text-red-700 p-3 rounded-lg text-sm flex items-center">
@@ -253,7 +72,6 @@ const Login = () => {
             )}
             
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
               <div className="space-y-2">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email Address
@@ -267,6 +85,7 @@ const Login = () => {
                     type="email"
                     name="email"
                     placeholder="you@example.com"
+                    value={formData.email}
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -274,7 +93,6 @@ const Login = () => {
                 </div>
               </div>
               
-              {/* Password Field */}
               <div className="space-y-2">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
@@ -288,6 +106,7 @@ const Login = () => {
                     type={showPassword ? "text" : "password"}
                     name="password"
                     placeholder="••••••••"
+                    value={formData.password}
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -306,7 +125,6 @@ const Login = () => {
                 </div>
               </div>
               
-              {/* Role Selection */}
               <div className="space-y-2">
                 <label htmlFor="role" className="block text-sm font-medium text-gray-700">
                   Login As
@@ -318,6 +136,7 @@ const Login = () => {
                   <select
                     id="role"
                     name="role"
+                    value={formData.role}
                     onChange={handleChange}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none transition-all duration-200"
                   >
@@ -332,14 +151,12 @@ const Login = () => {
                 </div>
               </div>
               
-              {/* Forgot Password Link */}
               <div className="flex justify-end">
                 <button type="button" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
                   Forgot password?
                 </button>
               </div>
               
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -361,7 +178,6 @@ const Login = () => {
             </form>
           </div>
           
-          {/* Footer Section */}
           <div className="px-8 py-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between">
             <p className="text-sm text-gray-600 mb-4 sm:mb-0">
               Don't have an account?

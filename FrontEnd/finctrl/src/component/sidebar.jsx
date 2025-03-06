@@ -5,15 +5,21 @@ import { useState, useEffect } from "react";
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [profilePic, setProfilePic] = useState(localStorage.getItem("userPic"));
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+  const [profilePic, setProfilePic] = useState(localStorage.getItem("userPic") || "https://via.placeholder.com/40");
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || {});
 
   useEffect(() => {
-    if (user?.picture) {
-      localStorage.setItem("userPic", user.picture);
-      setProfilePic(user.picture);
-    }
-  }, [user]);
+    // Update state if localStorage changes (e.g., from ProfileDashboard)
+    const handleStorageChange = () => {
+      setProfilePic(localStorage.getItem("userPic") || "https://via.placeholder.com/40");
+      setUser(JSON.parse(localStorage.getItem("user")) || {});
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    handleStorageChange(); // Initial check
+
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const menuItems = [
     { title: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
@@ -47,7 +53,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
           ) : null}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`p-1 rounded-lg hover:bg-gray-100 transition-all duration-200 `}
+            className="p-1 rounded-lg hover:bg-gray-100 transition-all duration-200"
           >
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
@@ -72,7 +78,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
           <li>
             <button
               onClick={handleLogout}
-              className={`flex items-center p-2 rounded-lg text-gray-700 transition hover:bg-gray-100`}
+              className="flex items-center p-2 rounded-lg text-gray-700 transition hover:bg-gray-100"
             >
               <LogOut size={20} />
               {!isCollapsed && <span className="ml-3">Logout</span>}
@@ -80,7 +86,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
           </li>
         </ul>
         {user && (
-          <div 
+          <div
             onClick={handleProfileClick}
             className="flex items-center gap-2 mt-35 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors"
           >
@@ -90,8 +96,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               <div className="flex gap-1.5">
                 <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
                 <div>
-                  <h2 className="text-sm font-semibold">{user?.nickname}</h2>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
+                  <h2 className="text-sm font-semibold">{user.username || "User"}</h2>
+                  <p className="text-xs text-gray-500">{user.email || "No email"}</p>
                 </div>
               </div>
             )}
