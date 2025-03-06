@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Save, ArrowLeft } from "lucide-react";
+import { Camera, Save, ArrowLeft, AlertCircle } from "lucide-react";
 import { LoadingIcon } from "../components/ui/loading-icon";
 
 const ProfileDashboard = () => {
@@ -47,7 +47,7 @@ const ProfileDashboard = () => {
         picture: data.picture || null,
       });
       setPreview(data.picture || null);
-      localStorage.setItem("user", JSON.stringify(data)); // Update localStorage
+      localStorage.setItem("user", JSON.stringify(data));
       if (data.picture) localStorage.setItem("userPic", data.picture);
     } catch (error) {
       setError(error.message || "Failed to load profile.");
@@ -65,10 +65,14 @@ const ProfileDashboard = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        setError("Image size must be less than 5MB.");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
-        setFormData((prev) => ({ ...prev, picture: reader.result })); // Store base64 string
+        setFormData((prev) => ({ ...prev, picture: reader.result }));
       };
       reader.readAsDataURL(file);
     }
@@ -92,7 +96,7 @@ const ProfileDashboard = () => {
         body: JSON.stringify({
           username: formData.username,
           email: formData.email,
-          picture: formData.picture, // Base64 string
+          picture: formData.picture,
         }),
       });
 
@@ -117,21 +121,25 @@ const ProfileDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <LoadingIcon size={58} color="border-l-indigo-500" />
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+        <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-lg">
+          <LoadingIcon size={58} color="border-l-indigo-500" />
+          <p className="text-gray-600 animate-pulse">Loading your profile...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-red-500 text-center">
-          <p className="text-xl mb-4">😕</p>
-          <p>{error}</p>
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md w-full">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Oops!</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={fetchProfile}
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
           >
             Try Again
           </button>
@@ -141,31 +149,36 @@ const ProfileDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Profile Settings</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-6 flex items-center justify-center">
+      <div className="max-w-2xl w-full space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-bold text-gray-800 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+            Profile Settings
+          </h1>
           <button
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium"
           >
             <ArrowLeft size={20} />
             Back to Dashboard
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Profile Card */}
+        <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Profile Picture and Info */}
             <div className="flex items-center gap-6">
-              <div className="relative">
+              <div className="relative group">
                 <img
                   src={preview || "https://via.placeholder.com/150"}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-200 shadow-sm group-hover:border-blue-300 transition-all duration-200"
                 />
                 <label
                   htmlFor="profile-pic"
-                  className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700"
+                  className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-all duration-200 shadow-md group-hover:scale-110"
                 >
                   <Camera size={20} />
                   <input
@@ -178,44 +191,52 @@ const ProfileDashboard = () => {
                 </label>
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-semibold">{formData.username}</h2>
-                <p className="text-gray-500">{formData.email}</p>
+                <h2 className="text-2xl font-semibold text-gray-800">{formData.username}</h2>
+                <p className="text-gray-500 text-sm mt-1">{formData.email}</p>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Your username"
-                required
-              />
+            {/* Form Fields */}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-gray-50"
+                  placeholder="Your username"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-gray-50"
+                  placeholder="you@example.com"
+                  required
+                />
+              </div>
+
+              {error && (
+                <p className="text-red-500 flex items-center gap-2 text-sm">
+                  <AlertCircle size={16} /> {error}
+                </p>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-
-            {error && <p className="text-red-500">{error}</p>}
-
+            {/* Submit Button */}
             <div className="flex justify-end">
               <button
                 type="submit"
                 disabled={loading}
-                className={`flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
+                className={`flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 transform hover:scale-105 ${
                   loading ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
