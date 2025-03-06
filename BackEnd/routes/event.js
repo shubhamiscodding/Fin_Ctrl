@@ -64,16 +64,15 @@ router.get("/", verifyToken, async (req, res) => {
     const { ispublic } = req.query;
     let query = {};
 
-    if (req.user.role === "admin") {
-      if (ispublic !== undefined) {
-        query.ispublic = ispublic === "true";
-      }
-    } else {
-      query.createdBy = req.user.id;
-      query.createdByModel = "User";
-      if (ispublic !== undefined) {
-        query.ispublic = ispublic === "true";
-      }
+    // Filter events by the authenticated user's ID (admin or user)
+    query.createdBy = req.user.id;
+
+    // Set the model type based on role
+    query.createdByModel = req.user.role === "admin" ? "Admin" : "User";
+
+    // Optional filter for public/private events
+    if (ispublic !== undefined) {
+      query.ispublic = ispublic === "true";
     }
 
     const events = await Event.find(query).sort({ dateofevent: -1 });
