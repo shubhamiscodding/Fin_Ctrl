@@ -10,6 +10,7 @@ import Login from './component/login';
 import Signup from './component/signup';
 import Eventdetail from './component/eventdetail';
 import ProfileDashboard from './component/profiledashboard';
+import Publiceventdetail from './component/publiceventdetail'; 
 
 // This component will be inside Router context
 const AppContent = () => {
@@ -52,6 +53,7 @@ const AppContent = () => {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/event" element={<EventSection />} />
               <Route path="/event/:id" element={<Eventdetail />} />
+              <Route path="/publicevent/:id" element={<Publiceventdetail />} />
               <Route path="/profiles" element={<Profiles />} />
               <Route path="/users" element={<Users />} />
               <Route path="/guide" element={<Guide />} />

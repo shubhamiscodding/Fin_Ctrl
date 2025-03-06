@@ -286,7 +286,6 @@ const EventSection = () => {
                 className="w-full p-2 border rounded-lg"
                 value={newEvent.eventName}
                 onChange={(e) => setNewEvent((prev) => ({ ...prev, eventName: e.target.value }))}
-                autoFocus
               />
             </div>
             <div>

@@ -22,7 +22,7 @@ const EventCard = ({ eventName, dateofevent, description, _id }) => {
       <div className="text-sm text-gray-500 line-clamp-3">{description}</div>
 
       <div className="absolute mt-6 -ml-3">
-        <Link to={`/event/${_id}`}>
+        <Link to={`/publicevent/${_id}`}>
           <button className="text-blue-500 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-300 rounded px-2">
             View Event Details
           </button>
