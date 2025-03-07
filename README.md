@@ -151,12 +151,7 @@ We welcome contributions! Follow these steps to contribute:
 4. **Push to your fork** and submit a PR
 
 
-## 🔗 Connect with Me
-- **GitHub**: [shubhamiscodding](https://github.com/shubhamiscodding)
-- **LinkedIn**: [Your LinkedIn Profile](#)
-- **Email**: [your-email@example.com](mailto:your-email@example.com)
-
-
+## postman Docs : [link](https://documenter.getpostman.com/view/39189595/2sAYdoDSAc)
 
 ## Figma link
 https://www.figma.com/proto/DNBtQzukvRqvlJOR15WNiD/FINAL-PROJECT?node-id=103-636&t=pu4XjTKv2pbC3geb-1
