@@ -9,15 +9,22 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || {});
 
   useEffect(() => {
-    // Update state if localStorage changes (e.g., from ProfileDashboard)
+    // Update state when localStorage changes
     const handleStorageChange = () => {
-      setProfilePic(localStorage.getItem("userPic"));
-      setUser(JSON.parse(localStorage.getItem("user")) || {});
+      const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+      const storedPic = localStorage.getItem("userPic") || "https://via.placeholder.com/40";
+      setUser(storedUser);
+      setProfilePic(storedPic);
+      console.log("Updated user from localStorage:", storedUser); // Debug
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    handleStorageChange(); // Initial check
+    // Initial load
+    handleStorageChange();
 
+    // Listen for storage events (cross-tab updates)
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
@@ -33,12 +40,16 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("userPic");
+    localStorage.removeItem("role");
     navigate("/login");
   };
 
   const handleProfileClick = () => {
     navigate("/profile-dashboard");
   };
+
+  const displayName = user.adminName || user.username || "User"; // Use username for users, adminName for admins
+  const displayEmail = user.email || "No email";
 
   return (
     <div className={`fixed h-screen top-0 left-0 bg-white shadow-lg transition-all duration-300 ${isCollapsed ? "w-20" : "w-62"}`}>
@@ -96,8 +107,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               <div className="flex gap-1.5">
                 <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
                 <div>
-                  <h2 className="text-sm font-semibold">{user.userName || user.adminName || "User"}</h2>
-                  <p className="text-xs text-gray-500">{user.email || "No email"}</p>
+                  <h2 className="text-sm font-semibold">{displayName}</h2>
+                  <p className="text-xs text-gray-500">{displayEmail}</p>
                 </div>
               </div>
             )}
