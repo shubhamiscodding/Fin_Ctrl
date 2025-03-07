@@ -2,17 +2,20 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Camera, Save, ArrowLeft, AlertCircle } from "lucide-react";
 import { LoadingIcon } from "../components/ui/loading-icon";
+import Compressor from "compressorjs";
 
 const ProfileDashboard = () => {
   const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     username: "",
+    adminName: "",
     email: "",
     picture: null,
   });
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [role, setRole] = useState(localStorage.getItem("role") || "user");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,14 +43,18 @@ const ProfileDashboard = () => {
       }
 
       const data = await response.json();
+      console.log("Profile data from GET:", data); // Debug initial load
       setUser(data);
+      setRole(data.role || localStorage.getItem("role") || "user");
       setFormData({
         username: data.username || "",
+        adminName: data.adminName || "",
         email: data.email || "",
         picture: data.picture || null,
       });
-      setPreview(data.picture || null);
+      setPreview(data.picture || localStorage.getItem("userPic") || null);
       localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("role", data.role || "user");
       if (data.picture) localStorage.setItem("userPic", data.picture);
     } catch (error) {
       setError(error.message || "Failed to load profile.");
@@ -62,19 +69,42 @@ const ProfileDashboard = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      new Compressor(file, {
+        quality: 0.6,
+        maxWidth: 800,
+        maxHeight: 800,
+        success(result) {
+          resolve(result);
+        },
+        error(err) {
+          reject(err);
+        },
+      });
+    });
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
         setError("Image size must be less than 5MB.");
         return;
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-        setFormData((prev) => ({ ...prev, picture: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressedFile = await compressImage(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Image = reader.result;
+          console.log("Compressed image size:", base64Image.length / 1024, "KB"); // Debug image size
+          setPreview(base64Image);
+          setFormData((prev) => ({ ...prev, picture: base64Image }));
+        };
+        reader.readAsDataURL(compressedFile);
+      } catch (err) {
+        setError("Failed to compress image: " + err.message);
+      }
     }
   };
 
@@ -87,32 +117,61 @@ const ProfileDashboard = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Please log in to update your profile.");
 
+      const payload = {
+        email: formData.email,
+        picture: formData.picture || "",
+        ...(role === "admin" ? { adminName: formData.adminName } : { username: formData.username }),
+      };
+
+      const payloadString = JSON.stringify(payload);
+      console.log("Sending payload:", payload); // Debug payload before sending
+      console.log("Payload size:", payloadString.length / 1024, "KB");
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch("https://fin-ctrl-1.onrender.com/users/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          username: formData.username,
-          email: formData.email,
-          picture: formData.picture,
-        }),
+        body: payloadString,
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Response status:", response.status, "Response text:", errorData);
         if (response.status === 401) throw new Error("Unauthorized: Please log in again.");
+        if (response.status === 413) throw new Error("Payload too large. Reduce image size.");
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
 
       const updatedUser = await response.json();
+      console.log("Updated user from PUT:", updatedUser); // Debug response
       setUser(updatedUser.user);
+      setFormData({
+        username: updatedUser.user.username || "",
+        adminName: updatedUser.user.adminName || "",
+        email: updatedUser.user.email || "",
+        picture: updatedUser.user.picture || null,
+      });
+      setPreview(updatedUser.user.picture || null);
       localStorage.setItem("user", JSON.stringify(updatedUser.user));
-      if (formData.picture) localStorage.setItem("userPic", formData.picture);
+      localStorage.setItem("role", role);
+      if (updatedUser.user.picture) localStorage.setItem("userPic", updatedUser.user.picture);
       alert("Profile updated successfully!");
     } catch (error) {
-      setError(error.message || "Failed to update profile.");
+      if (error.name === "AbortError") {
+        setError("Request timed out. Try a smaller image or check your connection.");
+      } else if (error.name === "TypeError" && error.message.includes("Failed to fetch")) {
+        setError("Network error: Could not connect to the server. Check your internet or server status.");
+      } else {
+        setError(error.message || "Failed to update profile.");
+      }
       console.error("Error updating profile:", error);
     } finally {
       setLoading(false);
@@ -157,11 +216,11 @@ const ProfileDashboard = () => {
             Profile Settings
           </h1>
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate(/*role === "admin" ? "/admin-dashboard" : */ "/dashboard")}
             className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 font-medium"
           >
             <ArrowLeft size={20} />
-            Back to Dashboard
+            Back to {role === "admin" ? "Admin Dashboard" : "Dashboard"}
           </button>
         </div>
 
@@ -191,25 +250,42 @@ const ProfileDashboard = () => {
                 </label>
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-semibold text-gray-800">{formData.username}</h2>
-                <p className="text-gray-500 text-sm mt-1">{formData.email}</p>
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  {role === "admin" ? formData.adminName || "Admin" : formData.username || "User"}
+                </h2>
+                <p className="text-gray-500 text-sm mt-1">{formData.email || "No email set"}</p>
               </div>
             </div>
 
             {/* Form Fields */}
             <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-gray-50"
-                  placeholder="Your username"
-                  required
-                />
-              </div>
+              {role === "admin" ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Admin Name</label>
+                  <input
+                    type="text"
+                    name="adminName"
+                    value={formData.adminName}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-gray-50"
+                    placeholder="Your admin name"
+                    required
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md bg-gray-50"
+                    placeholder="Your username"
+                    required
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
