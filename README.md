@@ -1,48 +1,139 @@
 # fin_ctrl
 
-## Problem Statment  ?
+# FinCtrl - Role-Based Finance Tracker
 
-->Managing personal and event-based finances can be a daunting task, especially when it comes to tracking daily, weekly, or monthly expenses, allocating budgets for specific events, and maintaining financial transparency. Individuals often lack efficient tools to track and share financial data, while administrators face challenges in overseeing multiple users, managing permissions, and providing investment guidance.
+FinCtrl is a **role-based finance tracking web application** built using **React.js** for the frontend and **Node.js with MongoDB** for the backend. It enables users to **track finances, manage event budgets, share financial data, and receive money management guidance**, while **admins** can **manage users, control visibility, and invest on behalf of users**.
 
-This project aims to address these challenges by developing a comprehensive personal finance tracker web app that empowers public users to manage their finances effectively and enables administrators to control system-wide financial operations with ease.
+---
+
+## 🚀 Features
+- **User Authentication**: Secure login and registration using **Auth0**
+- **Role-Based Access**:
+  - **User**: Track finances, manage events, share insights
+  - **Admin**: Manage users, control finance plans, oversee investments
+- **Event Management**: Create, update, and track budgets for events
+- **Financial Insights**: Get guidance on money management
+- **Data Security**: JWT authentication for backend API protection
+
+---
+
+## 🛠 Tech Stack
+### **Frontend** (React.js)
+- React.js
+- React Router
+- Tailwind CSS (or other styling frameworks)
+
+### **Backend** (Node.js & Express)
+- Node.js
+- Express.js
+- MongoDB (NoSQL database)
+- Mongoose (MongoDB ODM)
+- JSON Web Tokens (JWT) for authentication
+
+### **Deployment**
+- Frontend: **Deployed on Render**
+- Backend: **Deployed on Render**
+- Database: **MongoDB Atlas**
+
+---
+
+## 🔧 Installation & Setup
+### **1. Clone the Repository**
+```sh
+ git clone https://github.com/shubhamiscodding/Fin_Ctrl.git
+ cd Fin_Ctrl
+```
+### **2. Install Dependencies**
+#### **Frontend**
+```sh
+ cd frontend  # Navigate to frontend directory
+ npm install  # Install dependencies
+```
+#### **Backend**
+```sh
+ cd backend  # Navigate to backend directory
+ npm install  # Install dependencies
+```
+
+### **3. Configure Environment Variables**
+Create a `.env` file in the **backend** folder and add:
+```env
+not avalaible
+```
+
+### **4. Run the Application**
+#### **Frontend**
+```sh
+ npm run dev
+```
+#### **Backend**
+```sh
+ node server.js
+```
+
+---
+
+## 📂 Project Structure
+```
+Fin_Ctrl/
+├── frontend/
+│   ├── src/
+│   │   ├── components/  # Reusable UI components
+│   │   ├── pages/  # Different pages of the app
+│   │   ├── context/  # Global state management
+│   │   ├── utils/  # Helper functions
+│   │   ├── App.js  # Main React component
+│   │   ├── index.js  # React entry point
+│   ├── package.json  # Frontend dependencies
+│
+├── backend/
+│   ├── model/  # MongoDB Schemas (User, Admin, Finance, Event)
+│   ├── routes/  # API Routes (User, Admin, Event)
+│   ├── server.js  # Main backend file
+│   ├── .env  # Environment variables
+│   ├── package.json  # Backend dependencies
+│
+├── README.md  # Project Documentation
+```
+
+---
+
+## 📌 API Routes Overview
+### **User Routes (`/api/user`)**
+| Method | Endpoint  | Description |
+|--------|----------|-------------|
+| POST   | `/register` | Register a new user |
+| POST   | `/login` | Login with manual login |
+| GET    | `/profile/:id` | Get user profile |
+
+### **Admin Routes (`/api/admin`)**
+| Method | Endpoint  | Description |
+|--------|----------|-------------|
+| POST   | `/create` | Create a new admin |
+| GET    | `/users` | Get all users under an admin |
+
+### **Event Routes (`/api/event`)**
+| Method | Endpoint  | Description |
+|--------|----------|-------------|
+| POST   | `/create` | Create a new event |
+| GET    | `/list` | Get all events |
 
 
-->I am building a *personal finance tracker web app* designed for managing finances at the *daily, weekly, or monthly level. The app has two user types: **public users* and *admins*.  
 
-### Key Features:
-1. *User Roles*:  
-   - *Public User*:  
-     - Can track their own finances.  
-     - Can share financial data publicly (optional).  
-     - Can view shared profiles.  
-     - Can add themselves to the system for finance tracking.  
-   - *Admin*:  
-     - Can view all users' finance trackers.  
-     - Controls visibility of financial trackers (who can see what).  
-     - Can invest on behalf of users.  
-     - Can remove users from the system.  
-     - Can promote users to admin or demote them.
+## 🤝 Contributing
+We welcome contributions! Follow these steps to contribute:
+1. **Fork** the repository
+2. **Create a new branch** (`feature-branch`)
+3. **Make your changes** and commit them
+4. **Push to your fork** and submit a PR
 
-2. *Finance Management*:  
-   - Users can manage their finances for specific *events* manually.  
-   - The system provides *money management guidance*.  
 
-3. *Event Management*:  
-   - Users can create and manage events (e.g., vacations, weddings, etc.) with allocated budgets.  
+## 🔗 Connect with Me
+- **GitHub**: [shubhamiscodding](https://github.com/shubhamiscodding)
+- **LinkedIn**: [Your LinkedIn Profile](#)
+- **Email**: [your-email@example.com](mailto:your-email@example.com)
 
-4. *Profile View*:  
-   - Users can view other users' shared profiles (with admin-controlled visibility).  
 
-### Functional Requirements:
-- *User Addition*: Allow public users to self-register for finance tracking.  
-- *Admin Privileges*: Admins can remove users, assign admin roles, and control profile visibility.  
-- *Public Sharing*: Users decide whether to share their financial trackers publicly.  
-- *Investments*: Admins can make investments on behalf of users.  
-
-### Technical Considerations:
-- Build with an intuitive *UI/UX* that is simple for users to navigate.  
-- Ensure *data security* for sensitive financial information.  
-- Implement role-based access control for admins and public users.
 
 ## Figma link
 https://www.figma.com/proto/DNBtQzukvRqvlJOR15WNiD/FINAL-PROJECT?node-id=103-636&t=pu4XjTKv2pbC3geb-1
