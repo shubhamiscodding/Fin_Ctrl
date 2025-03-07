@@ -11,7 +11,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   useEffect(() => {
     // Update state if localStorage changes (e.g., from ProfileDashboard)
     const handleStorageChange = () => {
-      setProfilePic(localStorage.getItem("userPic") || "https://via.placeholder.com/40");
+      setProfilePic(localStorage.getItem("userPic"));
       setUser(JSON.parse(localStorage.getItem("user")) || {});
     };
 
@@ -96,7 +96,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               <div className="flex gap-1.5">
                 <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
                 <div>
-                  <h2 className="text-sm font-semibold">{user.username || "User"}</h2>
+                  <h2 className="text-sm font-semibold">{user.userName || user.adminName || "User"}</h2>
                   <p className="text-xs text-gray-500">{user.email || "No email"}</p>
                 </div>
               </div>
