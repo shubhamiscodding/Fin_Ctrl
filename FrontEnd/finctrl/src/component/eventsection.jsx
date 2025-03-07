@@ -19,6 +19,7 @@ const EventSection = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -70,6 +71,16 @@ const EventSection = () => {
   };
 
   const handleAddEvent = async () => {
+    if (!newEvent.eventName.trim()) {
+      setError("Event name is required");
+      return;
+    }
+    if (!newEvent.dateofevent) {
+      setError("Event date is required");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const token = getToken();
       if (!token) {
@@ -88,7 +99,6 @@ const EventSection = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        if (response.status === 401) throw new Error("Unauthorized - Please log in");
         throw new Error(errorData.message || `API error: ${response.status}`);
       }
 
@@ -99,6 +109,8 @@ const EventSection = () => {
     } catch (error) {
       console.error("Error adding event:", error);
       setError(error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -142,9 +154,17 @@ const EventSection = () => {
   };
 
   const handleUpdateEvent = async () => {
-    try {
-      if (!editingEvent) return;
+    if (!editingEvent?.title.trim()) {
+      setError("Event name is required");
+      return;
+    }
+    if (!editingEvent?.date) {
+      setError("Event date is required");
+      return;
+    }
 
+    setIsSubmitting(true);
+    try {
       const token = getToken();
       if (!token) {
         navigate("/login");
@@ -170,8 +190,6 @@ const EventSection = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        if (response.status === 401) throw new Error("Unauthorized - Please log in");
-        if (response.status === 403) throw new Error("You don't have permission to edit this event");
         throw new Error(errorData.message || `API error: ${response.status}`);
       }
 
@@ -182,6 +200,8 @@ const EventSection = () => {
     } catch (error) {
       console.error("Error updating event:", error);
       setError(error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -264,7 +284,6 @@ const EventSection = () => {
                         {card.ispublic ? "Public Event" : "Private Event"}
                       </span>
                     </div>
-                    <div className="text-gray-600">Budget: ${card.budget.toLocaleString()}</div>
                     <div className="text-gray-600 truncate">{card.description}</div>
                   </div>
                 </div>
@@ -275,36 +294,48 @@ const EventSection = () => {
       </div>
 
       {showModal && (
-        <Modal onClose={() => setShowModal(false)}>
+        <Modal onClose={() => {
+          setShowModal(false);
+          setNewEvent({ eventName: "", dateofevent: "", ispublic: false, budget: 0, description: "" });
+          setError(null);
+        }}>
           <h2 className="text-2xl font-semibold mb-6">Create New Event</h2>
+          {error && <div className="text-red-500 mb-4">{error}</div>}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name *</label>
               <input
                 type="text"
                 placeholder="Event Name"
                 className="w-full p-2 border rounded-lg"
                 value={newEvent.eventName}
                 onChange={(e) => setNewEvent((prev) => ({ ...prev, eventName: e.target.value }))}
-                autoFocus
+                required
+                maxLength={100}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Event Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Date *</label>
               <input
                 type="date"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.dateofevent}
                 onChange={(e) => setNewEvent((prev) => ({ ...prev, dateofevent: e.target.value }))}
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
               <input
                 type="number"
+                min="0"
+                step="1"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={newEvent.budget}
-                onChange={(e) => setNewEvent((prev) => ({ ...prev, budget: Number(e.target.value) }))}
+                value={newEvent.budget || ""}
+                onChange={(e) => setNewEvent((prev) => ({ 
+                  ...prev, 
+                  budget: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value))
+                }))}
               />
             </div>
             <div>
@@ -313,6 +344,7 @@ const EventSection = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.description}
                 onChange={(e) => setNewEvent((prev) => ({ ...prev, description: e.target.value }))}
+                maxLength={500}
               />
             </div>
             <div>
@@ -320,12 +352,7 @@ const EventSection = () => {
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={newEvent.ispublic ? "Public" : "Private"}
-                onChange={(e) =>
-                  setNewEvent((prev) => ({
-                    ...prev,
-                    ispublic: e.target.value === "Public",
-                  }))
-                }
+                onChange={(e) => setNewEvent((prev) => ({ ...prev, ispublic: e.target.value === "Public" }))}
               >
                 <option value="Public">Public</option>
                 <option value="Private">Private</option>
@@ -334,12 +361,20 @@ const EventSection = () => {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleAddEvent}
-                className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                disabled={isSubmitting}
+                className={`flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors ${
+                  isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Create Event
+                {isSubmitting ? "Creating..." : "Create Event"}
               </button>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setNewEvent({ eventName: "", dateofevent: "", ispublic: false, budget: 0, description: "" });
+                  setError(null);
+                }}
+                disabled={isSubmitting}
                 className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
@@ -350,35 +385,47 @@ const EventSection = () => {
       )}
 
       {showEditModal && editingEvent && (
-        <Modal onClose={() => setShowEditModal(false)}>
+        <Modal onClose={() => {
+          setShowEditModal(false);
+          setEditingEvent(null);
+          setError(null);
+        }}>
           <h2 className="text-2xl font-semibold mb-6">Edit Event</h2>
+          {error && <div className="text-red-500 mb-4">{error}</div>}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Name *</label>
               <input
                 type="text"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.title}
                 onChange={(e) => setEditingEvent((prev) => ({ ...prev, title: e.target.value }))}
-                autoFocus
+                required
+                maxLength={100}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Event Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Date *</label>
               <input
                 type="date"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.date}
                 onChange={(e) => setEditingEvent((prev) => ({ ...prev, date: e.target.value }))}
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
               <input
                 type="number"
+                min="0"
+                step="1"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                value={editingEvent.budget}
-                onChange={(e) => setEditingEvent((prev) => ({ ...prev, budget: Number(e.target.value) }))}
+                value={editingEvent.budget || ""}
+                onChange={(e) => setEditingEvent((prev) => ({ 
+                  ...prev, 
+                  budget: e.target.value === "" ? 0 : Math.max(0, Number(e.target.value))
+                }))}
               />
             </div>
             <div>
@@ -387,6 +434,7 @@ const EventSection = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.description}
                 onChange={(e) => setEditingEvent((prev) => ({ ...prev, description: e.target.value }))}
+                maxLength={500}
               />
             </div>
             <div>
@@ -394,12 +442,7 @@ const EventSection = () => {
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={editingEvent.ispublic ? "Public" : "Private"}
-                onChange={(e) =>
-                  setEditingEvent((prev) => ({
-                    ...prev,
-                    ispublic: e.target.value === "Public",
-                  }))
-                }
+                onChange={(e) => setEditingEvent((prev) => ({ ...prev, ispublic: e.target.value === "Public" }))}
               >
                 <option value="Public">Public</option>
                 <option value="Private">Private</option>
@@ -408,12 +451,20 @@ const EventSection = () => {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleUpdateEvent}
-                className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                disabled={isSubmitting}
+                className={`flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors ${
+                  isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Update Event
+                {isSubmitting ? "Updating..." : "Update Event"}
               </button>
               <button
-                onClick={() => setShowEditModal(false)}
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingEvent(null);
+                  setError(null);
+                }}
+                disabled={isSubmitting}
                 className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel

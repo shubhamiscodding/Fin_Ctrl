@@ -46,7 +46,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
         <div className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}>
           {!isCollapsed ? (
             <img
-              src="https://res.cloudinary.com/dqhn4dq02/image/upload/v1738918889/c8sw0fobwfaa0yzwcu2a.png"
+              src="https://res.cloudinary.com/dqhn4dq02/image/upload/v1741248835/hudrwpm8ah1hnlfo0ahm.png"
               alt="LOGO"
               className="max-h-15"
             />
