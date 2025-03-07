@@ -99,24 +99,47 @@ Fin_Ctrl/
 ---
 
 ## 📌 API Routes Overview
-### **User Routes (`/api/user`)**
-| Method | Endpoint  | Description |
-|--------|----------|-------------|
-| POST   | `/register` | Register a new user |
-| POST   | `/login` | Login with manual login |
-| GET    | `/profile/:id` | Get user profile |
 
-### **Admin Routes (`/api/admin`)**
-| Method | Endpoint  | Description |
-|--------|----------|-------------|
-| POST   | `/create` | Create a new admin |
-| GET    | `/users` | Get all users under an admin |
+### **User Routes (**``**)**
 
-### **Event Routes (`/api/event`)**
-| Method | Endpoint  | Description |
-|--------|----------|-------------|
-| POST   | `/create` | Create a new event |
-| GET    | `/list` | Get all events |
+| Method | Endpoint       | Description               |
+| ------ | -------------- | ------------------------- |
+| POST   | `/register`    | Register a new user       |
+| POST   | `/login`       | Login user (manual login) |
+| GET    | `/profile/:id` | Get user profile by ID    |
+| PUT    | `/update/:id`  | Update user profile       |
+| DELETE | `/delete/:id`  | Delete a user account     |
+
+### **Admin Routes (**``**)**
+
+| Method | Endpoint       | Description                            |
+| ------ | -------------- | -------------------------------------- |
+| POST   | `/create`      | Register a new admin                   |
+| GET    | `/users`       | Retrieve all users managed by an admin |
+| GET    | `/profile/:id` | Get admin profile by ID                |
+| PUT    | `/update/:id`  | Update admin profile                   |
+| DELETE | `/delete/:id`  | Delete an admin account                |
+
+### **Finance Routes (**``**)**
+
+| Method | Endpoint                    | Description                                            |
+| ------ | --------------------------- | ------------------------------------------------------ |
+| POST   | `/`                         | Create a new finance record                            |
+| GET    | `/`                         | Retrieve all finance records                           |
+| GET    | `/period`                   | Get finance records by time period (month/week/custom) |
+| POST   | `/:id/expenses`             | Add an expense to a finance record                     |
+| POST   | `/:id/plan/:planId/savings` | Add savings to a finance plan                          |
+| DELETE | `/:id`                      | Delete a finance record                                |
+
+### **Event Routes (**``**)**
+
+| Method | Endpoint      | Description             |
+| ------ | ------------- | ----------------------- |
+| POST   | `/create`     | Create a new event      |
+| GET    | `/list`       | Retrieve all events     |
+| GET    | `/:id`        | Get event details by ID |
+| PUT    | `/update/:id` | Update an event         |
+| DELETE | `/delete/:id` | Delete an event         |
 
 
 
