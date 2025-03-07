@@ -264,7 +264,7 @@ const EventSection = () => {
                         {card.ispublic ? "Public Event" : "Private Event"}
                       </span>
                     </div>
-                    <div className="text-gray-600">Budget: ${card.budget.toLocaleString()}</div>
+                    {/* <div className="text-gray-600">Budget: ${card.budget.toLocaleString()}</div> */}
                     <div className="text-gray-600 truncate">{card.description}</div>
                   </div>
                 </div>

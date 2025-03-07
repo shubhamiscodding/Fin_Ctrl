@@ -13,7 +13,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Fetch finance data from backend
   const fetchFinanceData = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -30,13 +29,11 @@ export default function Dashboard() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Failed to fetch finance data");
 
-      // Process finance data
       let totalExpenses = 0;
       let totalIncome = 0;
       const transactions = [];
 
       data.forEach((finance) => {
-        // Aggregate expenses
         finance.expenses.forEach((expense) => {
           totalExpenses += expense.amount;
           transactions.push({
@@ -44,11 +41,10 @@ export default function Dashboard() {
             date: new Date(expense.date).toISOString().split("T")[0],
             description: expense.description,
             category: expense.category,
-            amount: -expense.amount, // Negative for expenses
+            amount: -expense.amount,
           });
         });
 
-        // Aggregate savings as income
         finance.financePlans.forEach((plan) => {
           totalIncome += plan.totalSaved;
           plan.savingsTransactions.forEach((tx) => {
@@ -57,13 +53,13 @@ export default function Dashboard() {
               date: new Date(tx.date).toISOString().split("T")[0],
               description: tx.description,
               category: "Savings",
-              amount: tx.amount, // Positive for savings
+              amount: tx.amount,
             });
           });
         });
       });
 
-      const totalAmount = totalIncome; // Total income as "available"
+      const totalAmount = totalIncome;
       const usedAmount = totalExpenses;
       const balance = totalAmount - usedAmount;
 
@@ -71,7 +67,7 @@ export default function Dashboard() {
         totalAmount,
         usedAmount,
         balance,
-        transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)), // Sort by date descending
+        transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)),
       });
     } catch (err) {
       setError(err.message || "Error loading dashboard data");
@@ -93,46 +89,52 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-4 flex items-center justify-center min-h-screen">
-        <p>Loading dashboard...</p>
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
+        <p className="text-sm sm:text-base">Loading dashboard...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container mx-auto p-4 flex items-center justify-center min-h-screen">
-        <p className="text-red-600">{error}</p>
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
+        <p className="text-red-600 text-sm sm:text-base">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       {/* Top Cards Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Available Balance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">INR: {financeData.balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              INR: {financeData.balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Expenses</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Income</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -140,26 +142,28 @@ export default function Dashboard() {
       {/* Main Content Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart Section */}
-        <div className="bg-blue-100 text-black p-6 rounded-2xl shadow-lg">
-          <div className="flex justify-between items-center">
+        <div className="bg-blue-100 text-black p-4 sm:p-6 rounded-2xl shadow-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <p className="font-bold text-lg">Available</p>
-              <p className="text-sm">this Month</p>
-              <p className="text-2xl font-bold mt-2">INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <p className="font-bold text-base sm:text-lg">Available</p>
+              <p className="text-xs sm:text-sm">this Month</p>
+              <p className="text-xl sm:text-2xl font-bold mt-2">
+                INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
-            <button className="text-sm bg-white text-gray-800 px-3 py-1 rounded-full">
+            <button className="text-xs sm:text-sm bg-white text-gray-800 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
               Change
             </button>
           </div>
 
-          <div className="flex justify-center items-center relative mt-6">
-            <ResponsiveContainer width="100%" height={200}>
+          <div className="flex justify-center items-center relative mt-4 sm:mt-6">
+            <ResponsiveContainer width="100%" height={180} minHeight={150}>
               <RadialBarChart
                 cx="50%"
                 cy="50%"
                 innerRadius="85%"
                 outerRadius="130%"
-                barSize={12}
+                barSize={10}
                 data={chartData}
               >
                 <RadialBar dataKey="value" data={[chartData[1]]} fill={chartData[1].fill} />
@@ -167,8 +171,10 @@ export default function Dashboard() {
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute flex flex-col items-center justify-center">
-              <p className="text-2xl font-bold">INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-              <p className="text-sm">{new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long" })}</p>
+              <p className="text-lg sm:text-2xl font-bold">
+                INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs sm:text-sm">{new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long" })}</p>
             </div>
           </div>
         </div>
@@ -176,28 +182,24 @@ export default function Dashboard() {
         {/* Table Section */}
         <div className="lg:col-span-2">
           <div className="border rounded-lg">
-            <div className="max-h-[400px] overflow-y-auto">
+            <div className="max-h-[300px] sm:max-h-[400px] overflow-y-auto">
               <Table>
                 <TableHeader className="sticky top-0 bg-white z-10 shadow">
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Date</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Description</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden md:table-cell">Category</TableHead>
+                    <TableHead className="text-xs sm:text-sm text-right">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {financeData.transactions.map((transaction) => (
                     <TableRow key={transaction.id}>
-                      <TableCell>{transaction.date}</TableCell>
-                      <TableCell>{transaction.description}</TableCell>
-                      <TableCell>{transaction.category}</TableCell>
-                      <TableCell className="text-right">
-                        <span
-                          className={
-                            transaction.amount > 0 ? "text-green-600" : "text-red-600"
-                          }
-                        >
+                      <TableCell className="text-xs sm:text-sm">{transaction.date}</TableCell>
+                      <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{transaction.description}</TableCell>
+                      <TableCell className="text-xs sm:text-sm hidden md:table-cell">{transaction.category}</TableCell>
+                      <TableCell className="text-xs sm:text-sm text-right">
+                        <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
                           INR: {Math.abs(transaction.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </TableCell>
