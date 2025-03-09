@@ -7,7 +7,6 @@ FinCtrl is a **role-based finance tracking web application** built using **React
 ---
 
 ## 🚀 Features
-- **User Authentication**: Secure login and registration using **Auth0**
 - **Role-Based Access**:
   - **User**: Track finances, manage events, share insights
   - **Admin**: Manage users, control finance plans, oversee investments
