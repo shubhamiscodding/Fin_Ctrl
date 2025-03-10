@@ -20,8 +20,8 @@ FinCtrl is a **role-based finance tracking web application** built using **React
 ### **Frontend** (React.js)
 - React.js
 - React Router
-- Tailwind CSS (or other styling frameworks)
-
+- Tailwind CSS
+  
 ### **Backend** (Node.js & Express)
 - Node.js
 - Express.js
@@ -84,7 +84,7 @@ Fin_Ctrl/
 │   │   ├── App.js  # Main React component
 │   │   ├── index.js  # React entry point
 │   ├── package.json  # Frontend dependencies
-│
+|   ├── .env
 ├── backend/
 │   ├── model/  # MongoDB Schemas (User, Admin, Finance, Event)
 │   ├── routes/  # API Routes (User, Admin, Event)
