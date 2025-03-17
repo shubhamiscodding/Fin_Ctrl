@@ -11,7 +11,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const verifyToken = (req, res, next) => {
   const token = req.header("Authorization");
   if (!token) {
-    return res.status(401).json({ message: "Access denied, no token provided" });
+    return res
+      .status(401)
+      .json({ message: "Access denied, no token provided" });
   }
 
   try {
@@ -46,19 +48,33 @@ router.post("/register", async (req, res) => {
     });
 
     await newAdmin.save();
-    res.status(201).json({ message: "Admin created successfully", admin: newAdmin });
+    res
+      .status(201)
+      .json({ message: "Admin created successfully", admin: newAdmin });
   } catch (error) {
     res.status(500).json({ message: "Server error: " + error.message });
   }
 });
 
-// Get All Admins (Protected, but should this be /login?)
-router.get("/login", verifyToken, async (req, res) => {
+// Login Admin (Unprotected)
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const allAdmins = await Admin.find();
-    res.status(200).json(allAdmins);
-  } catch (err) {
-    res.status(500).send("Error fetching admins: " + err.message);
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await admin.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const token = admin.generateAuthToken();
+    res.status(200).json({ token });
+  } catch (error) {
+    res.status(500).json({ message: "Server error: " + error.message });
   }
 });
 
@@ -104,7 +120,11 @@ router.get("/events", verifyToken, async (req, res) => {
     const allEvents = [...adminEvents, ...userEvents];
 
     if (allEvents.length === 0) {
-      return res.status(404).json({ message: "No events found for this admin or their managed users" });
+      return res
+        .status(404)
+        .json({
+          message: "No events found for this admin or their managed users",
+        });
     }
 
     res.status(200).json(allEvents);
