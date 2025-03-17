@@ -42,7 +42,7 @@ const Login = () => {
     try {
       const data = await loginUser(formData.email, formData.password, formData.role);
       if (data) {
-        navigate(formData.role === "admin" ? "/admin-dashboard" : "/dashboard");
+        navigate(formData.role === "admin" ? "/dashboard" : "/dashboard");
       }
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials.");

@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutDashboard, CalendarDays, Users, UserCircle, FileText, LogOut, Calendar } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -9,28 +9,23 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || {});
 
   useEffect(() => {
-    // Update state when localStorage changes
     const handleStorageChange = () => {
       const storedUser = JSON.parse(localStorage.getItem("user")) || {};
       const storedPic = localStorage.getItem("userPic") || "https://via.placeholder.com/40";
       setUser(storedUser);
       setProfilePic(storedPic);
-      console.log("Updated user from localStorage:", storedUser); // Debug
+      console.log("Updated user from localStorage:", storedUser);
     };
 
-    // Initial load
     handleStorageChange();
-
-    // Listen for storage events (cross-tab updates)
     window.addEventListener("storage", handleStorageChange);
-
-    // Cleanup
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const menuItems = [
     { title: "Dashboard", icon: <LayoutDashboard size={20} />, path: "/dashboard" },
     { title: "Event", icon: <CalendarDays size={20} />, path: "/event" },
+    { title: "Calendar", icon: <Calendar size={20} />, path: "/calendar" },
     { title: "Profiles", icon: <UserCircle size={20} />, path: "/profiles" },
     { title: "Users", icon: <Users size={20} />, path: "/users" },
     { title: "Guide", icon: <FileText size={20} />, path: "/guide" },
@@ -48,7 +43,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
     navigate("/profile-dashboard");
   };
 
-  const displayName = user.adminName || user.username || "User"; // Use username for users, adminName for admins
+  const displayName = user.adminName || user.username || "User";
   const displayEmail = user.email || "No email";
 
   return (
@@ -77,9 +72,8 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`flex items-center p-2 rounded-lg text-gray-700 transition ${
-                  location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
-                }`}
+                className={`flex items-center p-2 rounded-lg text-gray-700 transition ${location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
+                  }`}
               >
                 <span className="flex items-center justify-center">{item.icon}</span>
                 {!isCollapsed && <span className="ml-3">{item.title}</span>}
