@@ -59,7 +59,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
           ) : null}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-all duration-200"
+            className="p-1 rounded-lg hover:bg-gray-100 cursor-pointer transition-all duration-200"
           >
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
@@ -72,7 +72,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <li key={item.path}>
               <Link
                 to={item.path}
-                className={`flex items-center p-2 rounded-lg text-gray-700 transition ${location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
+                className={`flex items-center p-3 rounded-lg text-gray-700 transition ${location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
                   }`}
               >
                 <span className="flex items-center justify-center">{item.icon}</span>
@@ -83,7 +83,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
           <li>
             <button
               onClick={handleLogout}
-              className="flex items-center p-2 rounded-lg text-gray-700 transition hover:bg-gray-100"
+              className="flex items-center p-3 rounded-lg text-gray-700 cursor-pointer transition hover:bg-gray-100"
             >
               <LogOut size={20} />
               {!isCollapsed && <span className="ml-3">Logout</span>}

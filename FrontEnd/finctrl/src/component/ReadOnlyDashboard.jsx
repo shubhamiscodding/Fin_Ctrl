@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { format, startOfDay } from "date-fns";
+import { toast } from "react-toastify";
 
-export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
+export default function ReadOnlyDashboard({ selectedDate, token }) {
     const [financeData, setFinanceData] = useState({
         totalAmount: 0,
         usedAmount: 0,
@@ -11,17 +13,15 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
         transactions: [],
     });
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
 
     const fetchFinanceData = async () => {
         try {
-            const token = localStorage.getItem("token");
             if (!token) throw new Error("No authentication token found");
 
-            const dateStr = selectedDate.toISOString().split("T")[0];
-            const url = `https://fin-ctrl-1.onrender.com/finance/?date=${dateStr}`;
+            const normalizedDate = startOfDay(selectedDate);
+            const dateStr = format(normalizedDate, "yyyy-MM-dd");
 
-            const response = await fetch(url, {
+            const response = await fetch(`https://fin-ctrl-1.onrender.com/finance/?date=${dateStr}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -30,34 +30,53 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.message || "Failed to fetch finance data");
+            if (!response.ok && response.status !== 404) {
+                throw new Error(data.message || "Failed to fetch finance data");
+            }
 
             let totalExpenses = 0;
             let totalIncome = 0;
             const transactions = [];
 
+            if (response.status === 404 || !data.length) {
+                setFinanceData({
+                    totalAmount: 0,
+                    usedAmount: 0,
+                    balance: 0,
+                    transactions: [],
+                });
+                setLoading(false);
+                return;
+            }
+
             data.forEach((finance) => {
                 finance.expenses.forEach((expense) => {
-                    totalExpenses += expense.amount;
-                    transactions.push({
-                        id: expense._id,
-                        date: new Date(expense.date).toISOString().split("T")[0],
-                        description: expense.description,
-                        category: expense.category,
-                        amount: -expense.amount,
-                    });
+                    const expenseDate = startOfDay(new Date(expense.date));
+                    if (format(expenseDate, "yyyy-MM-dd") === dateStr) {
+                        totalExpenses += expense.amount;
+                        transactions.push({
+                            type: "expense",
+                            date: format(expenseDate, "yyyy-MM-dd"),
+                            description: expense.description,
+                            category: expense.category,
+                            amount: -expense.amount,
+                        });
+                    }
                 });
 
                 finance.financePlans.forEach((plan) => {
-                    totalIncome += plan.totalSaved;
                     plan.savingsTransactions.forEach((tx) => {
-                        transactions.push({
-                            id: tx._id,
-                            date: new Date(tx.date).toISOString().split("T")[0],
-                            description: tx.description,
-                            category: "Savings",
-                            amount: tx.amount,
-                        });
+                        const txDate = startOfDay(new Date(tx.date));
+                        if (format(txDate, "yyyy-MM-dd") === dateStr) {
+                            totalIncome += tx.amount;
+                            transactions.push({
+                                type: "income",
+                                date: format(txDate, "yyyy-MM-dd"),
+                                description: tx.description,
+                                category: "Savings",
+                                amount: tx.amount,
+                            });
+                        }
                     });
                 });
             });
@@ -73,7 +92,13 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
                 transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)),
             });
         } catch (err) {
-            setError(err.message || "Error loading dashboard data");
+            toast.error(err.message || "Error loading dashboard data");
+            setFinanceData({
+                totalAmount: 0,
+                usedAmount: 0,
+                balance: 0,
+                transactions: [],
+            });
         } finally {
             setLoading(false);
         }
@@ -81,7 +106,7 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
 
     useEffect(() => {
         fetchFinanceData();
-    }, [selectedDate]);
+    }, [selectedDate, token]);
 
     const percentage = financeData.totalAmount > 0 ? (financeData.usedAmount / financeData.totalAmount) * 100 : 0;
 
@@ -92,25 +117,16 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
 
     if (loading) {
         return (
-            <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center h-full">
                 <p className="text-sm sm:text-base">Loading dashboard...</p>
             </div>
         );
     }
 
-    if (error) {
-        return (
-            <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
-                <p className="text-red-600 text-sm sm:text-base">{error}</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-            {/* Top Cards Section */}
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 max-h-[80vh] overflow-y-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card>
+                <Card className="relative">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-xs sm:text-sm font-medium">Available Balance</CardTitle>
                     </CardHeader>
@@ -120,7 +136,7 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="relative">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-xs sm:text-sm font-medium">Total Expenses</CardTitle>
                     </CardHeader>
@@ -130,7 +146,7 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="relative">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-xs sm:text-sm font-medium">Total Income</CardTitle>
                     </CardHeader>
@@ -142,21 +158,16 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
                 </Card>
             </div>
 
-            {/* Main Content Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Chart Section */}
                 <div className="bg-blue-100 text-black p-4 sm:p-6 rounded-2xl shadow-lg">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <p className="font-bold text-base sm:text-lg">Available</p>
-                            <p className="text-xs sm:text-sm">{selectedDate.toLocaleDateString("en-IN", { day: "2-digit", month: "long" })}</p>
+                            <p className="text-xs sm:text-sm">{format(selectedDate, "dd MMMM")}</p>
                             <p className="text-xl sm:text-2xl font-bold mt-2">
                                 INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
                         </div>
-                        <button className="text-xs sm:text-sm bg-white text-gray-800 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap" disabled>
-                            Change
-                        </button>
                     </div>
                     <div className="flex justify-center items-center relative mt-4 sm:mt-6">
                         <ResponsiveContainer width="100%" height={180} minHeight={150}>
@@ -176,12 +187,11 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
                             <p className="text-lg sm:text-2xl font-bold">
                                 INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
-                            <p className="text-xs sm:text-sm">{selectedDate.toLocaleDateString("en-IN", { day: "2-digit", month: "long" })}</p>
+                            <p className="text-xs sm:text-sm">{format(selectedDate, "dd MMMM")}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Table Section */}
                 <div className="lg:col-span-2">
                     <div className="border rounded-lg">
                         <div className="max-h-[300px] sm:max-h-[400px] overflow-y-auto">
@@ -202,8 +212,8 @@ export default function ReadOnlyDashboard({ selectedDate = new Date() }) {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        financeData.transactions.map((transaction) => (
-                                            <TableRow key={transaction.id}>
+                                        financeData.transactions.map((transaction, index) => (
+                                            <TableRow key={index}>
                                                 <TableCell className="text-xs sm:text-sm">{transaction.date}</TableCell>
                                                 <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{transaction.description}</TableCell>
                                                 <TableCell className="text-xs sm:text-sm hidden md:table-cell">{transaction.category}</TableCell>
