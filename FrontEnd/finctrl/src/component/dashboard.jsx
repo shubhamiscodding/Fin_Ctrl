@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { format, startOfDay } from "date-fns";
+import { toast } from "react-toastify";
 
 export default function Dashboard({ selectedDate = new Date() }) {
   const [financeData, setFinanceData] = useState({
@@ -11,22 +13,24 @@ export default function Dashboard({ selectedDate = new Date() }) {
     transactions: [],
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [showDropdown, setShowDropdown] = useState({ balance: false, expenses: false, income: false });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
   const [formData, setFormData] = useState({ amount: "", description: "", category: "Other" });
   const [editingTransaction, setEditingTransaction] = useState(null);
+  const balanceDropdownRef = useRef(null);
+  const expensesDropdownRef = useRef(null);
+  const incomeDropdownRef = useRef(null);
 
   const fetchFinanceData = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No authentication token found");
 
-      const dateStr = selectedDate.toISOString().split("T")[0];
-      const url = `https://fin-ctrl-1.onrender.com/finance/?date=${dateStr}`;
+      const normalizedDate = startOfDay(selectedDate);
+      const dateStr = format(normalizedDate, "yyyy-MM-dd");
 
-      const response = await fetch(url, {
+      const response = await fetch(`https://fin-ctrl-1.onrender.com/finance/?date=${dateStr}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -35,39 +39,58 @@ export default function Dashboard({ selectedDate = new Date() }) {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to fetch finance data");
+      if (!response.ok && response.status !== 404) {
+        throw new Error(data.message || "Failed to fetch finance data");
+      }
 
       let totalExpenses = 0;
       let totalIncome = 0;
       const transactions = [];
 
+      if (response.status === 404 || !data.length) {
+        setFinanceData({
+          totalAmount: 0,
+          usedAmount: 0,
+          balance: 0,
+          transactions: [],
+        });
+        setLoading(false);
+        return;
+      }
+
       data.forEach((finance) => {
         finance.expenses.forEach((expense) => {
-          totalExpenses += expense.amount;
-          transactions.push({
-            id: expense._id,
-            financeId: finance._id,
-            type: "expense",
-            date: new Date(expense.date).toISOString().split("T")[0],
-            description: expense.description,
-            category: expense.category,
-            amount: -expense.amount,
-          });
+          const expenseDate = startOfDay(new Date(expense.date));
+          if (format(expenseDate, "yyyy-MM-dd") === dateStr) {
+            totalExpenses += expense.amount;
+            transactions.push({
+              id: expense._id,
+              financeId: finance._id,
+              type: "expense",
+              date: format(expenseDate, "yyyy-MM-dd"),
+              description: expense.description,
+              category: expense.category,
+              amount: -expense.amount,
+            });
+          }
         });
 
         finance.financePlans.forEach((plan) => {
-          totalIncome += plan.totalSaved;
           plan.savingsTransactions.forEach((tx) => {
-            transactions.push({
-              id: tx._id,
-              financeId: finance._id,
-              planId: plan._id,
-              type: "income",
-              date: new Date(tx.date).toISOString().split("T")[0],
-              description: tx.description,
-              category: "Savings",
-              amount: tx.amount,
-            });
+            const txDate = startOfDay(new Date(tx.date));
+            if (format(txDate, "yyyy-MM-dd") === dateStr) {
+              totalIncome += tx.amount;
+              transactions.push({
+                id: tx._id,
+                financeId: finance._id,
+                planId: plan._id,
+                type: "income",
+                date: format(txDate, "yyyy-MM-dd"),
+                description: tx.description,
+                category: "Savings",
+                amount: tx.amount,
+              });
+            }
           });
         });
       });
@@ -83,7 +106,13 @@ export default function Dashboard({ selectedDate = new Date() }) {
         transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)),
       });
     } catch (err) {
-      setError(err.message || "Error loading dashboard data");
+      toast.error(err.message || "Error loading dashboard data");
+      setFinanceData({
+        totalAmount: 0,
+        usedAmount: 0,
+        balance: 0,
+        transactions: [],
+      });
     } finally {
       setLoading(false);
     }
@@ -114,7 +143,7 @@ export default function Dashboard({ selectedDate = new Date() }) {
       const { amount, description, category } = formData;
       if (!amount || amount <= 0) throw new Error("Please enter a valid amount");
 
-      const dateStr = selectedDate.toISOString().split("T")[0];
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
       const response = await fetch("https://fin-ctrl-1.onrender.com/finance/date", {
         method: "POST",
         headers: {
@@ -133,11 +162,11 @@ export default function Dashboard({ selectedDate = new Date() }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || `Failed to add ${modalType}`);
 
+      toast.success(`${modalType === "income" ? "Income" : "Expense"} added successfully!`);
       fetchFinanceData();
       setIsModalOpen(false);
     } catch (err) {
-      console.error(err.message);
-      setError(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -172,11 +201,11 @@ export default function Dashboard({ selectedDate = new Date() }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || "Failed to update transaction");
 
+      toast.success("Transaction updated successfully!");
       fetchFinanceData();
       setEditingTransaction(null);
     } catch (err) {
-      console.error(err.message);
-      setError(err.message);
+      toast.error(err.message);
     }
   };
 
@@ -189,12 +218,16 @@ export default function Dashboard({ selectedDate = new Date() }) {
     }));
   };
 
-  const toggleDropdown = (type) => {
+  const handleMenuClick = (type) => {
     setShowDropdown((prev) => ({
-      balance: type === "balance" ? !prev.balance : false,
-      expenses: type === "expenses" ? !prev.expenses : false,
-      income: type === "income" ? !prev.income : false,
+      balance: type === "balance" ? true : false,
+      expenses: type === "expenses" ? true : false,
+      income: type === "income" ? true : false,
     }));
+  };
+
+  const handleDropdownMouseLeave = () => {
+    setShowDropdown({ balance: false, expenses: false, income: false });
   };
 
   const percentage = financeData.totalAmount > 0 ? (financeData.usedAmount / financeData.totalAmount) * 100 : 0;
@@ -212,17 +245,8 @@ export default function Dashboard({ selectedDate = new Date() }) {
     );
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
-        <p className="text-red-600 text-sm sm:text-base">{error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-      {/* Top Cards Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card className="relative group">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -234,19 +258,28 @@ export default function Dashboard({ selectedDate = new Date() }) {
             </div>
           </CardContent>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={() => toggleDropdown("balance")} className="text-gray-600 text-lg">⋮</button>
+            <button
+              onClick={() => handleMenuClick("balance")}
+              className="text-gray-600 text-lg cursor-pointer"
+            >
+              ⋮
+            </button>
           </div>
           {showDropdown.balance && (
-            <div className="absolute top-8 right-2 w-32 bg-white border rounded shadow-lg z-10">
+            <div
+              ref={balanceDropdownRef}
+              onMouseLeave={handleDropdownMouseLeave}
+              className="absolute top-8 right-2 w-32 bg-white border rounded shadow-lg z-10"
+            >
               <button
                 onClick={() => openModal("income")}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
               >
                 Add Income
               </button>
               <button
                 onClick={() => openModal("expense")}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
               >
                 Add Expense
               </button>
@@ -263,13 +296,22 @@ export default function Dashboard({ selectedDate = new Date() }) {
             </div>
           </CardContent>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={() => toggleDropdown("expenses")} className="text-gray-600 text-lg">⋮</button>
+            <button
+              onClick={() => handleMenuClick("expenses")}
+              className="text-gray-600 text-lg cursor-pointer"
+            >
+              ⋮
+            </button>
           </div>
           {showDropdown.expenses && (
-            <div className="absolute top-8 right-2 w-32 bg-white border rounded shadow-lg z-10">
+            <div
+              ref={expensesDropdownRef}
+              onMouseLeave={handleDropdownMouseLeave}
+              className="absolute top-8 right-2 w-32 bg-white border rounded shadow-lg z-10"
+            >
               <button
                 onClick={() => openModal("expense")}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
               >
                 Add Expense
               </button>
@@ -286,13 +328,22 @@ export default function Dashboard({ selectedDate = new Date() }) {
             </div>
           </CardContent>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={() => toggleDropdown("income")} className="text-gray-600 text-lg">⋮</button>
+            <button
+              onClick={() => handleMenuClick("income")}
+              className="text-gray-600 text-lg cursor-pointer"
+            >
+              ⋮
+            </button>
           </div>
           {showDropdown.income && (
-            <div className="absolute top-8 right-2 w-32 bg-white border rounded shadow-lg z-10">
+            <div
+              ref={incomeDropdownRef}
+              onMouseLeave={handleDropdownMouseLeave}
+              className="absolute top-8 right-2 w-32 bg-white border rounded shadow-lg z-10"
+            >
               <button
                 onClick={() => openModal("income")}
-                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
               >
                 Add Income
               </button>
@@ -301,21 +352,16 @@ export default function Dashboard({ selectedDate = new Date() }) {
         </Card>
       </div>
 
-      {/* Main Content Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart Section */}
         <div className="bg-blue-100 text-black p-4 sm:p-6 rounded-2xl shadow-lg">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p className="font-bold text-base sm:text-lg">Available</p>
-              <p className="text-xs sm:text-sm">{selectedDate.toLocaleDateString("en-IN", { day: "2-digit", month: "long" })}</p>
+              <p className="text-xs sm:text-sm">{format(selectedDate, "dd MMMM")}</p>
               <p className="text-xl sm:text-2xl font-bold mt-2">
                 INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
-            <button className="text-xs sm:text-sm bg-white text-gray-800 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
-              Change
-            </button>
           </div>
           <div className="flex justify-center items-center relative mt-4 sm:mt-6">
             <ResponsiveContainer width="100%" height={180} minHeight={150}>
@@ -335,12 +381,11 @@ export default function Dashboard({ selectedDate = new Date() }) {
               <p className="text-lg sm:text-2xl font-bold">
                 INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
-              <p className="text-xs sm:text-sm">{selectedDate.toLocaleDateString("en-IN", { day: "2-digit", month: "long" })}</p>
+              <p className="text-xs sm:text-sm">{format(selectedDate, "dd MMMM")}</p>
             </div>
           </div>
         </div>
 
-        {/* Table Section */}
         <div className="lg:col-span-2">
           <div className="border rounded-lg">
             <div className="max-h-[300px] sm:max-h-[400px] overflow-y-auto">
@@ -418,16 +463,16 @@ export default function Dashboard({ selectedDate = new Date() }) {
                           {editingTransaction === transaction.id ? (
                             <button
                               onClick={() => handleSaveEdit(transaction)}
-                              className="text-blue-500 hover:underline"
+                              className="text-blue-500 hover:text-blue-700 cursor-pointer"
                             >
                               Save
                             </button>
                           ) : (
                             <button
                               onClick={() => handleEdit(transaction)}
-                              className="text-blue-500 hover:underline"
+                              className="text-blue-500 hover:text-blue-700 cursor-pointer"
                             >
-                              Edit
+                              ✏️
                             </button>
                           )}
                         </TableCell>
@@ -441,9 +486,8 @@ export default function Dashboard({ selectedDate = new Date() }) {
         </div>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/30 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 className="text-lg font-bold mb-4">
               Add {modalType === "income" ? "Income" : "Expense"}
