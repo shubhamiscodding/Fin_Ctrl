@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
+import { startOfDay } from "date-fns/startOfDay";
 import { toast } from "react-toastify";
 
 export default function Dashboard({ selectedDate = new Date() }) {
@@ -21,6 +22,34 @@ export default function Dashboard({ selectedDate = new Date() }) {
   const balanceDropdownRef = useRef(null);
   const expensesDropdownRef = useRef(null);
   const incomeDropdownRef = useRef(null);
+  const [user, setUser] = useState(null);
+
+  // Check for user authentication
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+    
+    if (!token) {
+      toast.error("Authentication required. Please log in.");
+      // If using react-router, you could redirect to login page
+      return;
+    }
+    
+    try {
+      // Parse user data if it exists
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } else {
+        // If token exists but user data doesn't, we should reload user data or redirect to login
+        toast.warning("User session incomplete. You may need to log in again.");
+      }
+    } catch (err) {
+      // If user data is corrupted
+      localStorage.removeItem("user");
+      toast.error("Session error. Please log in again.");
+    }
+  }, []);
 
   const fetchFinanceData = async () => {
     try {
@@ -30,81 +59,21 @@ export default function Dashboard({ selectedDate = new Date() }) {
       const normalizedDate = startOfDay(selectedDate);
       const dateStr = format(normalizedDate, "yyyy-MM-dd");
 
-      const response = await fetch(`https://fin-ctrl-1.onrender.com/finance/?date=${dateStr}`, {
+      const response = await fetch(`https://fin-ctrl-1.onrender.com/finance?date=${dateStr}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
       });
-
+      
       const data = await response.json();
+      
       if (!response.ok && response.status !== 404) {
         throw new Error(data.message || "Failed to fetch finance data");
       }
-
-      let totalExpenses = 0;
-      let totalIncome = 0;
-      const transactions = [];
-
-      if (response.status === 404 || !data.length) {
-        setFinanceData({
-          totalAmount: 0,
-          usedAmount: 0,
-          balance: 0,
-          transactions: [],
-        });
-        setLoading(false);
-        return;
-      }
-
-      data.forEach((finance) => {
-        finance.expenses.forEach((expense) => {
-          const expenseDate = startOfDay(new Date(expense.date));
-          if (format(expenseDate, "yyyy-MM-dd") === dateStr) {
-            totalExpenses += expense.amount;
-            transactions.push({
-              id: expense._id,
-              financeId: finance._id,
-              type: "expense",
-              date: format(expenseDate, "yyyy-MM-dd"),
-              description: expense.description,
-              category: expense.category,
-              amount: -expense.amount,
-            });
-          }
-        });
-
-        finance.financePlans.forEach((plan) => {
-          plan.savingsTransactions.forEach((tx) => {
-            const txDate = startOfDay(new Date(tx.date));
-            if (format(txDate, "yyyy-MM-dd") === dateStr) {
-              totalIncome += tx.amount;
-              transactions.push({
-                id: tx._id,
-                financeId: finance._id,
-                planId: plan._id,
-                type: "income",
-                date: format(txDate, "yyyy-MM-dd"),
-                description: tx.description,
-                category: "Savings",
-                amount: tx.amount,
-              });
-            }
-          });
-        });
-      });
-
-      const totalAmount = totalIncome;
-      const usedAmount = totalExpenses;
-      const balance = totalAmount - usedAmount;
-
-      setFinanceData({
-        totalAmount,
-        usedAmount,
-        balance,
-        transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)),
-      });
+      
+      processData(response.status, data);
     } catch (err) {
       toast.error(err.message || "Error loading dashboard data");
       setFinanceData({
@@ -117,10 +86,82 @@ export default function Dashboard({ selectedDate = new Date() }) {
       setLoading(false);
     }
   };
+  
+  const processData = (status, data) => {
+    let totalExpenses = 0;
+    let totalIncome = 0;
+    const transactions = [];
+
+    if (status === 404 || !data || !data.length) {
+      setFinanceData({
+        totalAmount: 0,
+        usedAmount: 0,
+        balance: 0,
+        transactions: [],
+      });
+      return;
+    }
+
+    const financeArray = Array.isArray(data) ? data : [data];
+    
+    financeArray.forEach((finance) => {
+      if (finance.expenses && Array.isArray(finance.expenses)) {
+        finance.expenses.forEach((expense) => {
+          if (!expense || !expense.date) return;
+          
+          totalExpenses += expense.amount || 0;
+          transactions.push({
+            id: expense._id,
+            financeId: finance._id,
+            type: "expense",
+            date: format(new Date(expense.date), "yyyy-MM-dd"),
+            description: expense.description || "Expense",
+            category: expense.category || "Other",
+            amount: -(expense.amount || 0),
+          });
+        });
+      }
+
+      if (finance.financePlans && Array.isArray(finance.financePlans)) {
+        finance.financePlans.forEach((plan) => {
+          if (!plan || !plan.savingsTransactions || !Array.isArray(plan.savingsTransactions)) return;
+          
+          plan.savingsTransactions.forEach((tx) => {
+            if (!tx || !tx.date) return;
+            
+            totalIncome += tx.amount || 0;
+            transactions.push({
+              id: tx._id,
+              financeId: finance._id,
+              planId: plan._id,
+              type: "income",
+              date: format(new Date(tx.date), "yyyy-MM-dd"),
+              description: tx.description || "Income",
+              category: "Savings",
+              amount: tx.amount || 0,
+            });
+          });
+        });
+      }
+    });
+    
+    const totalAmount = totalIncome;
+    const usedAmount = totalExpenses;
+    const balance = totalAmount - usedAmount;
+
+    setFinanceData({
+      totalAmount,
+      usedAmount,
+      balance,
+      transactions: transactions.sort((a, b) => new Date(b.date) - new Date(a.date)),
+    });
+  };
 
   useEffect(() => {
-    fetchFinanceData();
-  }, [selectedDate]);
+    if (localStorage.getItem("token")) {
+      fetchFinanceData();
+    }
+  }, [selectedDate, user]);
 
   const openModal = (type) => {
     setModalType(type);
@@ -182,20 +223,30 @@ export default function Dashboard({ selectedDate = new Date() }) {
       const updatedData = financeData.transactions.find((t) => t.id === transaction.id);
       const url = `https://fin-ctrl-1.onrender.com/finance/${transaction.financeId}`;
 
+      const requestBody = {};
+      if (transaction.type === "expense") {
+        requestBody.expenses = {
+          id: transaction.id,
+          amount: Number(Math.abs(updatedData.amount)),
+          description: updatedData.description,
+          category: updatedData.category
+        };
+      } else {
+        requestBody.savingsTransactions = {
+          id: transaction.id,
+          planId: transaction.planId,
+          amount: Number(Math.abs(updatedData.amount)),
+          description: updatedData.description
+        };
+      }
+
       const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          [transaction.type === "expense" ? "expenses" : "savingsTransactions"]: {
-            id: transaction.id,
-            amount: Number(updatedData.amount > 0 ? updatedData.amount : -updatedData.amount),
-            description: updatedData.description,
-            category: transaction.type === "expense" ? updatedData.category : undefined,
-          },
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const result = await response.json();

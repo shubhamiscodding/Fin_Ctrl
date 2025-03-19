@@ -4,7 +4,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode'; // Added for token decoding
+import jwtDecode from 'jwt-decode';
 
 import Sidebar from './component/sidebar';
 import EventSection from './component/eventsection';

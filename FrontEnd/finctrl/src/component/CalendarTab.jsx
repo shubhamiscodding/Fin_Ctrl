@@ -1,7 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { format, parse, startOfWeek, getDay, startOfDay, startOfMonth, endOfMonth, setMonth, setYear } from "date-fns";
+import { format } from "date-fns";
+import { parse } from "date-fns/parse";
+import { startOfWeek } from "date-fns/startOfWeek";
+import { getDay } from "date-fns/getDay";
+import { startOfDay } from "date-fns/startOfDay";
+import { startOfMonth } from "date-fns/startOfMonth";
+import { endOfMonth } from "date-fns/endOfMonth";
+import { setMonth } from "date-fns/setMonth";
+import { setYear } from "date-fns/setYear";
 import enUS from "date-fns/locale/en-US";
 import ReadOnlyDashboard from "./ReadOnlyDashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { RadialBarChart, RadialBar, ResponsiveContainer } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
-import { format, startOfDay } from "date-fns";
+import { format } from "date-fns";
+import { startOfDay } from "date-fns/startOfDay";
 import { toast } from "react-toastify";
 
 export default function ReadOnlyDashboard({ selectedDate, token }) {
@@ -21,7 +22,7 @@ export default function ReadOnlyDashboard({ selectedDate, token }) {
             const normalizedDate = startOfDay(selectedDate);
             const dateStr = format(normalizedDate, "yyyy-MM-dd");
 
-            const response = await fetch(`https://fin-ctrl-1.onrender.com/finance/?date=${dateStr}`, {
+            const response = await fetch(`https://fin-ctrl-1.onrender.com/finance?date=${dateStr}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -38,7 +39,7 @@ export default function ReadOnlyDashboard({ selectedDate, token }) {
             let totalIncome = 0;
             const transactions = [];
 
-            if (response.status === 404 || !data.length) {
+            if (response.status === 404 || !data || !data.length) {
                 setFinanceData({
                     totalAmount: 0,
                     usedAmount: 0,
@@ -49,36 +50,42 @@ export default function ReadOnlyDashboard({ selectedDate, token }) {
                 return;
             }
 
-            data.forEach((finance) => {
-                finance.expenses.forEach((expense) => {
-                    const expenseDate = startOfDay(new Date(expense.date));
-                    if (format(expenseDate, "yyyy-MM-dd") === dateStr) {
-                        totalExpenses += expense.amount;
+            const financeArray = Array.isArray(data) ? data : [data];
+            
+            financeArray.forEach((finance) => {
+                if (finance.expenses && Array.isArray(finance.expenses)) {
+                    finance.expenses.forEach((expense) => {
+                        if (!expense || !expense.date) return;
+                        
+                        totalExpenses += expense.amount || 0;
                         transactions.push({
                             type: "expense",
-                            date: format(expenseDate, "yyyy-MM-dd"),
-                            description: expense.description,
-                            category: expense.category,
-                            amount: -expense.amount,
+                            date: format(new Date(expense.date), "yyyy-MM-dd"),
+                            description: expense.description || "Expense",
+                            category: expense.category || "Other",
+                            amount: -(expense.amount || 0),
                         });
-                    }
-                });
+                    });
+                }
 
-                finance.financePlans.forEach((plan) => {
-                    plan.savingsTransactions.forEach((tx) => {
-                        const txDate = startOfDay(new Date(tx.date));
-                        if (format(txDate, "yyyy-MM-dd") === dateStr) {
-                            totalIncome += tx.amount;
+                if (finance.financePlans && Array.isArray(finance.financePlans)) {
+                    finance.financePlans.forEach((plan) => {
+                        if (!plan || !plan.savingsTransactions || !Array.isArray(plan.savingsTransactions)) return;
+                        
+                        plan.savingsTransactions.forEach((tx) => {
+                            if (!tx || !tx.date) return;
+                            
+                            totalIncome += tx.amount || 0;
                             transactions.push({
                                 type: "income",
-                                date: format(txDate, "yyyy-MM-dd"),
-                                description: tx.description,
+                                date: format(new Date(tx.date), "yyyy-MM-dd"),
+                                description: tx.description || "Income",
                                 category: "Savings",
-                                amount: tx.amount,
+                                amount: tx.amount || 0,
                             });
-                        }
+                        });
                     });
-                });
+                }
             });
 
             const totalAmount = totalIncome;

@@ -73,14 +73,9 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             <li key={item.path}>
               <Link
                 to={item.path}
-
-                className={`flex items-center p-3 rounded-lg text-gray-700 transition ${location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
-                  }`}
-
                 className={`flex items-center p-2 rounded-lg text-gray-700 transition ${
                   location.pathname === item.path ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"
                 }`}
-
               >
                 <span className="flex items-center justify-center">{item.icon}</span>
                 {!isCollapsed && <span className="ml-3">{item.title}</span>}
