@@ -5,15 +5,53 @@ import { useState, useEffect } from "react";
 const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [profilePic, setProfilePic] = useState(localStorage.getItem("userPic") || "https://via.placeholder.com/40");
+  const [profilePic, setProfilePic] = useState(null);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || {});
+
+  const generateAvatar = (name) => {
+    if (!name) return null;
+    const firstLetter = name.charAt(0).toUpperCase();
+    const colors = [
+      '#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e',
+      '#16a085', '#27ae60', '#2980b9', '#8e44ad', '#2c3e50',
+      '#f1c40f', '#e67e22', '#e74c3c', '#95a5a6', '#f39c12',
+      '#d35400', '#c0392b', '#bdc3c7', '#7f8c8d'
+    ];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 150;
+    canvas.height = 150;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw circle
+    ctx.beginPath();
+    ctx.arc(75, 75, 75, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    
+    // Draw text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 60px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(firstLetter, 75, 75);
+    
+    return canvas.toDataURL('image/png');
+  };
 
   useEffect(() => {
     const handleStorageChange = () => {
       const storedUser = JSON.parse(localStorage.getItem("user")) || {};
-      const storedPic = localStorage.getItem("userPic") || "https://via.placeholder.com/40"; // Fixed typo
+      const storedPic = localStorage.getItem("userPic");
       setUser(storedUser);
-      setProfilePic(storedPic);
+      
+      // Generate avatar if no picture exists
+      const name = storedUser.role === "admin" ? storedUser.adminName : storedUser.username;
+      const avatar = storedPic || generateAvatar(name);
+      setProfilePic(avatar);
+      
+      if (avatar) localStorage.setItem("userPic", avatar);
       console.log("Updated user from localStorage:", storedUser);
     };
 
@@ -98,10 +136,22 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
             className="flex items-center gap-2 mt-35 cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors"
           >
             {isCollapsed ? (
-              <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
+              <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+                <img 
+                  src={profilePic || generateAvatar(displayName)} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
             ) : (
               <div className="flex gap-1.5">
-                <img src={profilePic} alt="Profile" className="rounded-full w-10 h-10" />
+                <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center">
+                  <img 
+                    src={profilePic || generateAvatar(displayName)} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <div>
                   <h2 className="text-sm font-semibold">{displayName}</h2>
                   <p className="text-xs text-gray-500">{displayEmail}</p>

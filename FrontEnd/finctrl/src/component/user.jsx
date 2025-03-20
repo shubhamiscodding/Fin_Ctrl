@@ -109,18 +109,18 @@ const User = ({ isSidebarOpen }) => {
           ) : users.length > 0 ? (
             users.map((user) => (
               <div
-                key={user.userId._id}
+                key={user._id}
                 onClick={() => setSelectedUser(user)}
                 className="p-4 bg-white rounded-lg shadow-lg flex items-center space-x-3 cursor-pointer transition-all duration-300 hover:bg-gray-50"
               >
-                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <span className="text-indigo-600 font-semibold text-lg">
+                    {user.userId?.username ? user.userId.username.charAt(0).toUpperCase() : '?'}
+                  </span>
                 </div>
                 <div>
-                  <h3 className="font-medium">{user.userId.username}</h3>
-                  <p className="text-sm text-gray-500">{user.userId.email}</p>
+                  <h3 className="font-medium">{user.userId?.username || 'No Username'}</h3>
+                  <p className="text-sm text-gray-500">{user.userId?.email || 'No Email'}</p>
                 </div>
               </div>
             ))
@@ -134,39 +134,56 @@ const User = ({ isSidebarOpen }) => {
       <div className={`transition-all duration-300 p-6 bg-white shadow-lg rounded-lg ${isSidebarOpen ? "w-1/2" : "w-1/3"}`}>
         {selectedUser ? (
           <>
-            <div className="flex justify-center items-center mb-4 bg-gray-300 h-32">
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
+            <div className="flex justify-center items-center mb-6 bg-gradient-to-r from-indigo-500 to-purple-500 h-40 rounded-t-lg">
+              <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center shadow-lg transform -translate-y-12">
+                <span className="text-4xl font-bold text-indigo-600">
+                  {selectedUser.userId?.username ? selectedUser.userId.username.charAt(0).toUpperCase() : '?'}
+                </span>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <span className="text-sm font-semibold">Name: </span>
-                <span>{selectedUser.userId.username}</span>
-              </div>
-              <div>
-                <span className="text-sm font-semibold">Email: </span>
-                <span>{selectedUser.userId.email}</span>
-                <div className="border-b border-gray-300 mt-1"></div>
-              </div>
-              <div>
-                <span className="text-sm font-semibold">Joined: </span>
-                <span>{new Date(selectedUser.userId.createdAt).toLocaleDateString("en-US")}</span>
-                <div className="border-b border-gray-300 mt-1"></div>
+            <div className="space-y-4 px-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm font-semibold text-gray-600">Name</span>
+                    <p className="text-lg">{selectedUser.userId?.username || 'No Username'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-600">Email</span>
+                    <p className="text-lg">{selectedUser.userId?.email || 'No Email'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-gray-600">Joined</span>
+                    <p className="text-lg">
+                      {selectedUser.userId?.createdAt 
+                        ? new Date(selectedUser.userId.createdAt).toLocaleDateString("en-US", {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2 pt-2">
-                <button className="w-full py-2 px-4 bg-gray-100 text-gray-800 rounded hover:bg-gray-200">
-                  See More
+              <div className="space-y-3 pt-4">
+                <button className="w-full py-3 px-4 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors flex items-center justify-center space-x-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span>View Details</span>
                 </button>
                 <button
                   onClick={() => handleDeleteUser(selectedUser.userId._id)}
-                  className="w-full py-2 px-4 bg-red-500 text-white rounded hover:bg-red-600"
+                  className="w-full py-3 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center justify-center space-x-2"
                 >
-                  Delete User
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Delete User</span>
                 </button>
               </div>
             </div>

@@ -35,19 +35,20 @@ export default function Dashboard({ selectedDate = new Date() }) {
       return;
     }
     
-    try {
-      // Parse user data if it exists
-      if (userData) {
+    // Only show warning if we have no token OR if user data doesn't exist and we've attempted to parse it
+    if (userData) {
+      try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-      } else {
-        // If token exists but user data doesn't, we should reload user data or redirect to login
-        toast.warning("User session incomplete. You may need to log in again.");
+      } catch (err) {
+        // If user data is corrupted, clear it
+        localStorage.removeItem("user");
+        toast.error("Session error. Please log in again.");
       }
-    } catch (err) {
-      // If user data is corrupted
-      localStorage.removeItem("user");
-      toast.error("Session error. Please log in again.");
+    } else {
+      // Instead of showing a warning, try to reconstruct minimal user data
+      // This is a silent recovery that won't show warnings to the user
+      setUser({ isRecovered: true });
     }
   }, []);
 
@@ -305,7 +306,7 @@ export default function Dashboard({ selectedDate = new Date() }) {
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold">
-              INR: {financeData.balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹ {financeData.balance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </CardContent>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -343,7 +344,7 @@ export default function Dashboard({ selectedDate = new Date() }) {
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold">
-              INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹ {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </CardContent>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -375,7 +376,7 @@ export default function Dashboard({ selectedDate = new Date() }) {
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold">
-              INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹ {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </CardContent>
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -410,27 +411,29 @@ export default function Dashboard({ selectedDate = new Date() }) {
               <p className="font-bold text-base sm:text-lg">Available</p>
               <p className="text-xs sm:text-sm">{format(selectedDate, "dd MMMM")}</p>
               <p className="text-xl sm:text-2xl font-bold mt-2">
-                INR: {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ₹ {financeData.totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           </div>
           <div className="flex justify-center items-center relative mt-4 sm:mt-6">
-            <ResponsiveContainer width="100%" height={180} minHeight={150}>
+            <ResponsiveContainer width="100%" height={200} minHeight={180}>
               <RadialBarChart
                 cx="50%"
                 cy="50%"
-                innerRadius="85%"
-                outerRadius="130%"
-                barSize={10}
+                innerRadius="75%"
+                outerRadius="125%"
+                barSize={16}
                 data={chartData}
+                startAngle={90}
+                endAngle={-270}
               >
                 <RadialBar dataKey="value" data={[chartData[1]]} fill={chartData[1].fill} />
                 <RadialBar dataKey="value" data={[chartData[0]]} fill={chartData[0].fill} />
               </RadialBarChart>
             </ResponsiveContainer>
-            <div className="absolute flex flex-col items-center justify-center">
-              <p className="text-lg sm:text-2xl font-bold">
-                INR: {financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <div className="absolute flex flex-col items-center justify-center w-full max-w-[60%] text-center">
+              <p className="text-base sm:text-xl font-bold">
+                ₹{financeData.usedAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <p className="text-xs sm:text-sm">{format(selectedDate, "dd MMMM")}</p>
             </div>
@@ -506,7 +509,7 @@ export default function Dashboard({ selectedDate = new Date() }) {
                             />
                           ) : (
                             <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
-                              INR: {Math.abs(transaction.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              ₹ {Math.abs(transaction.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           )}
                         </TableCell>

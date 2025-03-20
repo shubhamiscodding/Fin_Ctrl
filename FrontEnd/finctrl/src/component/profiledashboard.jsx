@@ -18,6 +18,38 @@ const ProfileDashboard = () => {
   const [role, setRole] = useState(localStorage.getItem("role") || "user");
   const navigate = useNavigate();
 
+  const generateAvatar = (name) => {
+    if (!name) return null;
+    const firstLetter = name.charAt(0).toUpperCase();
+    const colors = [
+      '#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#34495e',
+      '#16a085', '#27ae60', '#2980b9', '#8e44ad', '#2c3e50',
+      '#f1c40f', '#e67e22', '#e74c3c', '#95a5a6', '#f39c12',
+      '#d35400', '#c0392b', '#bdc3c7', '#7f8c8d'
+    ];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 150;
+    canvas.height = 150;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw circle
+    ctx.beginPath();
+    ctx.arc(75, 75, 75, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    
+    // Draw text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 60px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(firstLetter, 75, 75);
+    
+    return canvas.toDataURL('image/png');
+  };
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -52,10 +84,15 @@ const ProfileDashboard = () => {
         email: data.email || "",
         picture: data.picture || null,
       });
-      setPreview(data.picture || localStorage.getItem("userPic") || null);
+      
+      // Generate avatar if no picture exists
+      const name = role === "admin" ? data.adminName : data.username;
+      const avatar = data.picture || generateAvatar(name);
+      setPreview(avatar);
+      
       localStorage.setItem("user", JSON.stringify(data));
       localStorage.setItem("role", data.role || "user");
-      if (data.picture) localStorage.setItem("userPic", data.picture);
+      if (avatar) localStorage.setItem("userPic", avatar);
     } catch (error) {
       setError(error.message || "Failed to load profile.");
       console.error("Error fetching profile:", error);
@@ -67,6 +104,13 @@ const ProfileDashboard = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Update avatar when name changes
+    if ((name === "username" || name === "adminName") && !formData.picture) {
+      const newName = name === "username" ? value : formData.username;
+      const avatar = generateAvatar(newName);
+      setPreview(avatar);
+    }
   };
 
   const compressImage = (file) => {
@@ -117,9 +161,13 @@ const ProfileDashboard = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Please log in to update your profile.");
 
+      // Generate new avatar if name changed and no picture exists
+      const name = role === "admin" ? formData.adminName : formData.username;
+      const avatar = formData.picture || generateAvatar(name);
+
       const payload = {
         email: formData.email,
-        picture: formData.picture || "",
+        picture: avatar,
         ...(role === "admin" ? { adminName: formData.adminName } : { username: formData.username }),
       };
 
@@ -159,7 +207,7 @@ const ProfileDashboard = () => {
         email: updatedUser.user.email || "",
         picture: updatedUser.user.picture || null,
       });
-      setPreview(updatedUser.user.picture || null);
+      setPreview(updatedUser.user.picture || generateAvatar(role === "admin" ? updatedUser.user.adminName : updatedUser.user.username));
       localStorage.setItem("user", JSON.stringify(updatedUser.user));
       localStorage.setItem("role", role);
       if (updatedUser.user.picture) localStorage.setItem("userPic", updatedUser.user.picture);
@@ -212,7 +260,7 @@ const ProfileDashboard = () => {
       <div className="max-w-2xl w-full space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold text-gray-800 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+          <h1 className="text-4xl font-bold text-gray-800 bg-clip-text  bg-gradient-to-r from-blue-600 to-indigo-600">
             Profile Settings
           </h1>
           <button
