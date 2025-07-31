@@ -29,11 +29,10 @@ const registerUser = async (userData, role) => {
 const Signup = () => {
   const [formData, setFormData] = useState({
     username: "",
-    adminName: "",
     email: "",
     password: "",
+    adminName: "",
     passForUser: "",
-    admin: "",
     role: "user",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -92,7 +91,8 @@ const Signup = () => {
           username: formData.username,
           email: formData.email,
           password: formData.password,
-          adminId: formData.admin,
+          adminName: formData.adminName,
+          passForUser: formData.passForUser,
         };
 
     try {
@@ -189,23 +189,54 @@ const Signup = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="admin" className="block text-xs sm:text-sm font-medium text-gray-700">
-                      Admin ID
+                    <label htmlFor="adminName" className="block text-xs sm:text-sm font-medium text-gray-700">
+                      Admin Name
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Shield size={16} className="text-gray-400" />
+                        <UserPlus size={16} className="text-gray-400" />
                       </div>
                       <input
-                        id="admin"
+                        id="adminName"
                         type="text"
-                        name="admin"
-                        placeholder="Admin ID provided to you"
-                        value={formData.admin}
+                        name="adminName"
+                        placeholder="Enter admin name"
+                        value={formData.adminName}
                         onChange={handleChange}
                         required
                         className="w-full pl-9 pr-3 py-2 sm:py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
                       />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="passForUser" className="block text-xs sm:text-sm font-medium text-gray-700">
+                      Pass for Users
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Key size={16} className="text-gray-400" />
+                      </div>
+                      <input
+                        id="passForUser"
+                        type={showPassForUser ? "text" : "password"}
+                        name="passForUser"
+                        placeholder="Create a pass for users"
+                        value={formData.passForUser}
+                        onChange={handleChange}
+                        required
+                        className="w-full pl-9 pr-3 py-2 sm:py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassForUser(!showPassForUser)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        {showPassForUser ? (
+                          <EyeOff size={16} className="text-gray-400" />
+                        ) : (
+                          <Eye size={16} className="text-gray-400" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 </>

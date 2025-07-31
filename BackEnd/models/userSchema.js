@@ -6,10 +6,12 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
+  adminName: { type: String, required: true },
+  passForUser: { type: String, required: true },
   role: { type: String, enum: ["user", "admin"], default: "user" },
   events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
   financePlans: [{ type: mongoose.Schema.Types.ObjectId, ref: "FinancePlan" }],
-  assignedAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", default: null },
+  assignedAdmin: { type: String, ref: "Admin", required: true },  // Changed to use adminName (String) instead of ObjectId
 }, { timestamps: true });
 
 UserSchema.pre('save', async function (next) {

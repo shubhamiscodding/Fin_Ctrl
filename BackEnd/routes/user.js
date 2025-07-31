@@ -34,17 +34,11 @@ router.post('/registration', async (req, res) => {
     const requestId = Math.random().toString(36).substring(7); // Random ID for each request
     console.log(`[${requestId}] Registration request received:`, req.body);
 
-    const { username, email, password, adminId } = req.body;
+    const { username, email, password, adminName, passForUser } = req.body;
 
-    // Validate adminId
-    if (!adminId) {
-      return res.status(400).json({ message: 'Admin ID is required' });
-    }
-
-    // Check if the admin exists
-    const admin = await Admin.findById(adminId);
-    if (!admin) {
-      return res.status(404).json({ message: 'Admin not found' });
+    // Validate required fields
+    if (!username || !email || !password || !adminName || !passForUser) {
+      return res.status(400).json({ message: 'All fields are required' });
     }
 
     // Check if user already exists
@@ -58,15 +52,13 @@ router.post('/registration', async (req, res) => {
       username,
       email,
       password, // Will be hashed by UserSchema pre-save hook
-      assignedAdmin: adminId,
+      adminName,
+      passForUser,
+      assignedAdmin: adminName // Set assignedAdmin to the adminName
     });
 
     await user.save();
     console.log(`[${requestId}] User saved:`, user._id);
-
-    // Push user to admin's managedUsers
-    await admin.addManagedUser(user._id);
-    console.log(`[${requestId}] Admin updated:`, admin.managedUsers);
 
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error) {
