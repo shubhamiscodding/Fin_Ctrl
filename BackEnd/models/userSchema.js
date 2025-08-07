@@ -11,7 +11,10 @@ const UserSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "admin"], default: "user" },
   events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
   financePlans: [{ type: mongoose.Schema.Types.ObjectId, ref: "FinancePlan" }],
-  assignedAdmin: { type: String, ref: "Admin", required: true },  // Changed to use adminName (String) instead of ObjectId
+
+  // ✅ UPDATED: assignedAdmin now stores Admin's ObjectId instead of name
+  assignedAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
+  
 }, { timestamps: true });
 
 UserSchema.pre('save', async function (next) {
@@ -26,7 +29,6 @@ UserSchema.methods.comparePassword = async function (enteredPassword) {
 
 UserSchema.methods.generateAuthToken = function () {
   const secret = process.env.JWT_SECRET || 'your-secret-key';
-  console.log('User generating token with JWT_SECRET:', secret); // Debug
   return jwt.sign({ id: this._id, role: this.role, username: this.username }, secret, { expiresIn: '7d' });
 };
 

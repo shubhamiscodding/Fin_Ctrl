@@ -31,41 +31,44 @@ const verifyToken = (req, res, next) => {
 // ✅ User Registration (Signup)
 router.post('/registration', async (req, res) => {
   try {
-    const requestId = Math.random().toString(36).substring(7); // Random ID for each request
-    console.log(`[${requestId}] Registration request received:`, req.body);
-
     const { username, email, password, adminName, passForUser } = req.body;
 
-    // Validate required fields
     if (!username || !email || !password || !adminName || !passForUser) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
+    let existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create new user (password hashing handled by schema pre-save hook)
-    user = new User({
+    // ✅ Find admin by name and pass
+    const admin = await Admin.findOne({ adminName, passForUser });
+    if (!admin) {
+      return res.status(400).json({ message: 'Invalid admin credentials' });
+    }
+
+    // ✅ Create user and assign to admin's ObjectId
+    const newUser = new User({
       username,
       email,
-      password, // Will be hashed by UserSchema pre-save hook
+      password,
       adminName,
       passForUser,
-      assignedAdmin: adminName // Set assignedAdmin to the adminName
+      assignedAdmin: admin._id,
     });
 
-    await user.save();
-    console.log(`[${requestId}] User saved:`, user._id);
+    await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully', user });
+    // ✅ Add this user to the admin's managedUsers array
+    await admin.addManagedUser(newUser._id);
+
+    res.status(201).json({ message: 'User registered successfully', user: newUser });
   } catch (error) {
-    console.error(`[${requestId}] Signup error:`, error);
     res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
+
 
 // ✅ User/Admin Login
 router.post('/login', async (req, res) => {
