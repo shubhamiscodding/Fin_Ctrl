@@ -29,6 +29,7 @@ const verifyToken = (req, res, next) => {
 };
 
 // ✅ User Registration (Signup)
+// ✅ User Registration (Signup)
 router.post('/registration', async (req, res) => {
   try {
     const { username, email, password, adminName, passForUser } = req.body;
@@ -42,25 +43,25 @@ router.post('/registration', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // ✅ Find admin by name and pass
+    // ✅ Find admin by name and passForUser
     const admin = await Admin.findOne({ adminName, passForUser });
     if (!admin) {
       return res.status(400).json({ message: 'Invalid admin credentials' });
     }
 
-    // ✅ Create user and assign to admin's ObjectId
+    // ✅ Create user and assign admin ObjectId
     const newUser = new User({
       username,
       email,
       password,
       adminName,
       passForUser,
-      assignedAdmin: admin._id,
+      assignedAdmin: admin._id, 
     });
 
     await newUser.save();
 
-    // ✅ Add this user to the admin's managedUsers array
+    // ✅ Add user to admin’s managedUsers
     await admin.addManagedUser(newUser._id);
 
     res.status(201).json({ message: 'User registered successfully', user: newUser });
@@ -68,6 +69,7 @@ router.post('/registration', async (req, res) => {
     res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
+
 
 
 // ✅ User/Admin Login
