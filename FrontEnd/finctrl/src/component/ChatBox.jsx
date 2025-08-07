@@ -2,7 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const socket = io('https://fin-ctrl-1.onrender.com');
+const socket = io('https://fin-ctrl-1.onrender.com', {
+  transports: ['websocket'],
+  timeout: 20000, // 20 seconds timeout
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 5000,
+});
+
 
 function ChatBox({ userId, role }) {
   const [chatList, setChatList] = useState([]);
