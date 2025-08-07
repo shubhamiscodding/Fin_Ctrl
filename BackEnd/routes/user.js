@@ -28,7 +28,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// ✅ User Registration (Signup)
+
 // ✅ User Registration (Signup)
 router.post('/registration', async (req, res) => {
   try {

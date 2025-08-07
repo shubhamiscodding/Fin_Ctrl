@@ -10,10 +10,12 @@ const AdminSchema = new mongoose.Schema({
   adminName: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
+  passForUser: { type: String, required: true },
   role: { type: String, enum: ['admin'], default: 'admin' },
   managedUsers: [ManagedUserSchema],
   events: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }],
 }, { timestamps: true });
+
 
 AdminSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
